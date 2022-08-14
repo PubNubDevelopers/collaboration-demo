@@ -1,124 +1,308 @@
-(function() {
-	/* Canvas */
+// Properties
+var CHANNEL = 'collaboration-demo';
+var users = {}; //Houses the users connected to app.
+var plots = []; //Contains the records of drawing actions.
+var oldCoordinates = {}; //Contains the starting coordinates of the mouse click.
+var batchSize = 10; //How many records of coordinates are sent at a time per PubNub publish.
+const PUBLIC_KEY = "pub-c-b8772a67-0f83-478d-a25a-3fffef982565"; //"PUBLIC_KEY_HERE";
+const SUBSCRIBE_KEY = "sub-c-cb5cda16-3e13-42d1-af5d-9ff3ab0f352f"; //"SUBSCRIBE_KEY_HERE";
 
-	var canvas = document.getElementById('drawCanvas');
-	var ctx = canvas.getContext('2d');
-	var color = document.querySelector(':checked').getAttribute('data-color');
+// PubNub Connection Object.
+var pubnub = new PubNub({
+    publishKey: PUBLIC_KEY,
+    subscribeKey: SUBSCRIBE_KEY,
+    uuid:self.crypto.randomUUID(),
+    presenceTimeout:20
+});
 
-	canvas.width = Math.min(document.documentElement.clientWidth, window.innerWidth || 300);
-	canvas.height = Math.min(document.documentElement.clientHeight, window.innerHeight || 300);
-	 
-	ctx.strokeStyle = color;
-	ctx.lineWidth = '3';
-	ctx.lineCap = ctx.lineJoin = 'round';
+// Set username. Request for a name. If none is given, generate an ANON_ + first four characters of their pubnub uuid.
+let input = prompt("Please enter your name to join the channel.");
+var username = "";
+if (input == null || input == "") {
+    username = "ANON_"+ pubnub.getUUID().substring(0,4);
+} else {
+    username = input;
+}
+setText(username);
 
-	/* Mouse and touch events */
-	
-	document.getElementById('colorSwatch').addEventListener('click', function() {
-		color = document.querySelector(':checked').getAttribute('data-color');
-	}, false);
-	
-	var isTouchSupported = 'ontouchstart' in window;
-	var isPointerSupported = navigator.pointerEnabled;
-	var isMSPointerSupported =  navigator.msPointerEnabled;
-	
-	var downEvent = isTouchSupported ? 'touchstart' : (isPointerSupported ? 'pointerdown' : (isMSPointerSupported ? 'MSPointerDown' : 'mousedown'));
-	var moveEvent = isTouchSupported ? 'touchmove' : (isPointerSupported ? 'pointermove' : (isMSPointerSupported ? 'MSPointerMove' : 'mousemove'));
-	var upEvent = isTouchSupported ? 'touchend' : (isPointerSupported ? 'pointerup' : (isMSPointerSupported ? 'MSPointerUp' : 'mouseup'));
-	 	  
-	canvas.addEventListener(downEvent, startDraw, false);
-	canvas.addEventListener(moveEvent, draw, false);
-	canvas.addEventListener(upEvent, endDraw, false);
+// Canvas and Drawing Settings
+var canvas = document.getElementById('drawCanvas');
+var ctx = canvas.getContext('2d');
+var color = document.querySelector(':checked').getAttribute('data-color');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+ctx.strokeStyle = color;
+ctx.lineWidth = '3';
+ctx.lineCap = ctx.lineJoin = 'round';
 
-	/* PubNub */
+// Mouse and touch events	
+document.getElementById('colorSwatch').addEventListener('click', function() {
+    color = document.querySelector(':checked').getAttribute('data-color');
+}, false);
 
-	var channel = 'draw';
+// Clear Canvas Button Press. Clears entire canvas for just that user.
+document.getElementById('clearCanvasButton').addEventListener('click', function(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+});
 
-	var pubnub = PUBNUB.init({
-		publish_key     : 'pub-c-156a6d5f-22bd-4a13-848d-b5b4d4b36695',
-		subscribe_key   : 'sub-c-f762fb78-2724-11e4-a4df-02ee2ddab7fe',
-		leave_on_unload : true,
-		ssl		: document.location.protocol === "https:"
-	});
+var isTouchSupported = 'ontouchstart' in window;
+var downEvent = isTouchSupported ? 'touchstart' : 'mousedown';
+var moveEvent = isTouchSupported ? 'touchmove' : 'mousemove';
+var upEvent = isTouchSupported ? 'touchend' : 'mouseup';
+       
+canvas.addEventListener(downEvent, startDraw, false);
+canvas.addEventListener(moveEvent, draw, false);
+canvas.addEventListener(upEvent, endDraw, false);
 
-	pubnub.subscribe({
-		channel: channel,
-		callback: drawFromStream,
-		presence: function(m){
-			if(m.occupancy > 1){
-				document.getElementById('unit').textContent = 'doodlers';
-			}
-   			document.getElementById('occupancy').textContent = m.occupancy;
-   			var p = document.getElementById('occupancy').parentNode;
-   			p.classList.add('anim');
-   			p.addEventListener('transitionend', function(){p.classList.remove('anim');}, false);
-   		}
-	});
+// Events and Listeners
+pubnub.addListener({
+    message: function(m) {
+        // Update canvas when other users draw.   
+        drawFromStream(m.message)
+    },
+    presence: function(m) {
+        // Update occupancy
+        var occupancy = m.occupancy;
+        if(occupancy > 1){ 
+            document.getElementById('unit').textContent = 'doodlers';
+        }
+        document.getElementById('occupancy').textContent = occupancy;
 
-	function publish(data) {
-		pubnub.publish({
-			channel: channel,
-			message: data
-		});
-     }
-
-    /* Draw on canvas */
-
-    function drawOnCanvas(color, plots) {
-    	ctx.strokeStyle = color;
-		ctx.beginPath();
-		ctx.moveTo(plots[0].x, plots[0].y);
-
-    	for(var i=1; i<plots.length; i++) {
-	    	ctx.lineTo(plots[i].x, plots[i].y);
-	    }
-	    ctx.stroke();
+        //Handle other user mice actions based on presence event.
+        if(m.uuid === pubnub.getUUID()) return; //skip self
+        switch(m.action) {
+            case 'join':
+            case'state-change':
+                updateUser(m.uuid, m.state);
+                break;
+            case 'leave':
+            case 'timeout':
+                removeUser(m.uuid, m.state);
+                break;
+            default:
+                break;
+        }     
     }
+});
 
-    function drawFromStream(message) {
-		if(!message || message.plots.length < 1) return;
-		drawOnCanvas(message.color, message.plots);
+//Subscribing to channels allows user to receive drawing strokes from other users.
+pubnub.subscribe({
+    channels : [CHANNEL],
+    withPresence: true 
+});
+
+//Publish data to PubNub network for subscribers (Data contains color, previous and new coordinates).
+async function publish(data) {	
+    try {
+        const result = await pubnub.publish({
+            message: data,
+            channel: CHANNEL				
+        });
+    } catch (status) {
+        console.log(status);
+    }		
+}
+
+//Handle Users closing or refreshing browser.
+window.onbeforeunload = function(event)
+{ 
+    //Current user has either closed browser or refreshed. Unsubscribe.
+    pubnub.unsubscribe({
+        channels: [CHANNEL]
+    });
+    event.preventDefault();
+    return event.returnValue = "Are you sure you want to leave?";
+};
+
+//Used for tracking location of mouse and updating position for other users connected to app.
+window.onmousemove = function(event) {
+    var rect = event.target.getBoundingClientRect();
+    var xy = { x: rect.left + event.offsetX, y: rect.top + event.offsetY, name: username};
+    setPos(xy);
+};
+
+//Draw on canvas
+function drawOnCanvas(color, startCoordinates, endCoordinates) {
+    ctx.strokeStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(startCoordinates.x, startCoordinates.y);
+    ctx.lineTo(endCoordinates.x, endCoordinates.y);
+    ctx.stroke();          
+}
+
+//Update canvas when other users draw.
+function drawFromStream(message) {
+    if(!message && message.data.length == 0) return;
+    for (var i = 0; i < message.data.length;i++) {
+        drawOnCanvas(message.data[i].color, message.data[i].oldCoordinates, message.data[i].newCoordinates);
     }
+}
+
+//On MouseMove Event.
+function draw(e) {
+    e.preventDefault(); // prevent continuous touch event process e.g. scrolling
+    //If touch is detected or primary mouse button pressed down while moving, draw on canvas.
+    if((isTouchSupported && e.touches.length == 1) || e.buttons == 1) {
+        var x = isTouchSupported ? (e.targetTouches[0].pageX - canvas.offsetLeft) : (e.offsetX || e.layerX - canvas.offsetLeft);
+        var y = isTouchSupported ? (e.targetTouches[0].pageY - canvas.offsetTop) : (e.offsetY || e.layerY - canvas.offsetTop);
+        var newCoordinates = {x: (x << 0), y: (y << 0)}; // round numbers for touch screens                
+        drawOnCanvas(color, oldCoordinates, newCoordinates);
+
+        var data = {
+            color:color,
+            oldCoordinates: oldCoordinates,
+            newCoordinates: newCoordinates
+        }
+        plots.push(data);
+        //Sending requests in batches due to browsers like Chrome throttling number of requests allowed to be sent out at a time.
+        if(plots.length >= batchSize) {
+            publish({
+                data:plots
+            });
+            plots = [];
+        }
+        oldCoordinates = newCoordinates; //Update oldCoordinates
+    }          
+}
+
+
+//On MouseDown, obtain current coordinates and save as starting coordinates.
+function startDraw(e) {
+    e.preventDefault();
+    var x = isTouchSupported ? (e.targetTouches[0].pageX - canvas.offsetLeft) : (e.offsetX || e.layerX - canvas.offsetLeft);
+    var y = isTouchSupported ? (e.targetTouches[0].pageY - canvas.offsetTop) : (e.offsetY || e.layerY - canvas.offsetTop);
+    oldCoordinates = {x: (x << 0), y: (y << 0)};
+}
+
+//On MouseUp, publish any remaining coordinates and reset.
+function endDraw(e) {
+    e.preventDefault();
+    //Batch process what's left.
+    if(plots.length > 0) {
+        publish({
+            data:plots
+        });
+    }
+    plots = []           
+    oldCoordinates = {};
+}      
+
+// Mouse Tracking
+function Sprite(state) {
+    this.x = 100;
+    this.y = 100;
+    this.div = document.createElement('div');
+    this.div.innerHTML = state.name;
+    this.div.readOnly = true;
+    this.div.style.pointerEvents = "none"; //Make the textbox non interactive with the cursor in order to be able to change color.
+    this.div.style.left = this.x+'px';
+    this.div.style.top  = this.y+'px';
+    this.div.classList.add('sprite');
     
-    // Get Older and Past Drawings!
-    if(drawHistory) {
-	    pubnub.history({
-	    	channel  : channel,
-	    	count    : 50,
-	    	callback : function(messages) {
-	    		pubnub.each( messages[0], drawFromStream );
-	    	}
-	    });
-	}
-    var isActive = false;
-    var plots = [];
+    //Random color for Mouse Name.
+    var rgb = {
+        r: Math.floor(Math.random() * 255),
+        g: Math.floor(Math.random() * 255),
+        b: Math.floor(Math.random() * 255)
+    }; 
+    this.div.style.backgroundColor = `rgba(${rgb.r},${rgb.g},${rgb.b}, 0.75)`;
+    this.div.style.borderColor = `rgba(${rgb.r},${rgb.g},${rgb.b}, 1)`;
 
-	function draw(e) {
-		e.preventDefault(); // prevent continuous touch event process e.g. scrolling!
-	  	if(!isActive) return;
+    //Create Pencil icon to mimic user cursor. 
+    this.img = document.createElement('img');
+    this.img.src = "images/pencil.png";
+    this.img.style.position = "absolute";
+    this.img.style.width = "45px";
+    this.img.style.height = "45px";
+    this.img.style.transform = "rotate(130deg)";
+    this.img.style.left = this.x - 140 + 'px';
+    this.img.style.bottom = this.y - 80 + 'px';
+    this.div.appendChild(this.img);
 
-    	var x = isTouchSupported ? (e.targetTouches[0].pageX - canvas.offsetLeft) : (e.offsetX || e.layerX - canvas.offsetLeft);
-    	var y = isTouchSupported ? (e.targetTouches[0].pageY - canvas.offsetTop) : (e.offsetY || e.layerY - canvas.offsetTop);
+    var spriteContainer = document.getElementById("sprite-container");
+    spriteContainer.appendChild(this.div);
+    var self = this;
+    this.setState = function(state) {//Called whenever user moves mouse.
+        if(!state) return;
+        if(state.txt) {
+            var removeUndefined = this.div.innerHTML.substring(9); //Removing the "undefined"
+            this.div.innerHTML = "<b>"+state.txt+"</b>" + removeUndefined;          
+        } 
+        if(state.x && state.y) {
+            var bounds = spriteContainer.getBoundingClientRect();
+            state.x = Math.min(state.x, bounds.width-100);
+            state.y = Math.min(state.y, bounds.height-50);
+            self.moveTo(state.x,state.y);
+        }
+    };
+    this.remove = function() {
+        this.div.parentNode.removeChild(this.div);
+    };
+    this.update = function() {//Updates the user mouse position by controlling speed and animation.
+        var diffx = this.x-this.tx;
+        var diffy = this.y-this.ty;
+        var dist = Math.sqrt((diffx*diffx) + (diffy*diffy));
+        if(dist < 4) {
+            this.x = this.tx;
+            this.y = this.ty;
+            this.div.style.left = this.x+'px';
+            this.div.style.top  = this.y+'px';
+        } else {
+            var speed = 4;
+            if(this.x < this.tx-speed) this.x += speed;
+            if(this.x > this.tx+speed) this.x -= speed;
+            if(this.y < this.ty-speed) this.y += speed;
+            if(this.y > this.ty+speed) this.y -= speed;
+            this.div.style.left = this.x+'px';
+            this.div.style.top  = this.y+'px';
+            requestAnimationFrame(this.update.bind(this));
+        }
+    };
+    this.moveTo = function(x,y) {
+        this.tx = x;
+        this.ty = y;
+        this.update();
+    }
+}
 
-    	plots.push({x: (x << 0), y: (y << 0)}); // round numbers for touch screens
+//Sets the users' text near their stylus pen.
+function setText(txt) {
+    updateUser(pubnub.getUUID(),{txt:txt});
+    pubnub.setState({
+        channels:[CHANNEL],
+        state: {
+            txt:txt            
+        }
+    });
+}
 
-    	drawOnCanvas(color, plots);
-	}
-	
-	function startDraw(e) {
-	  	e.preventDefault();
-	  	isActive = true;
-	}
-	
-	function endDraw(e) {
-	  	e.preventDefault();
-	  	isActive = false;
-	  
-	  	publish({
-	  		color: color,
-	  		plots: plots
-	  	});
+//Sets the position of other users' mice in the canvas.
+var lastsent = 0;
+function setPos(xy) {
+    updateUser(pubnub.getUUID(),{x:xy.x, y:xy.y, name:xy.name});
+    var now = new Date().getTime();
+    if(now-lastsent < 50) return;
+    lastsent = now;
+    pubnub.setState({
+        channels:[CHANNEL],
+        state: {
+            x:xy.x,
+            y:xy.y,
+            name:xy.name
+        }
+    });
+}
 
-	  	plots = [];
-	}
-})();
+//Creates new users if they do not exist yet, otherwise updates the position of the mouse.
+function updateUser(uuid,state) {
+    if(!users[uuid])  users[uuid] = new Sprite(state !== undefined ? state: "");
+    users[uuid].setState(state);
+}
+
+//Removes the specified uuid from the list if users for tracking mouse movements.
+function removeUser(uuid) {
+    if(users[uuid]) {
+        users[uuid].remove();
+        delete users[uuid];
+    }
+}
