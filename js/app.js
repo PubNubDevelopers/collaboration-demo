@@ -43,6 +43,12 @@ document.getElementById('colorSwatch').addEventListener('click', function() {
 // Clear Canvas Button Press. Clears entire canvas for just that user.
 document.getElementById('clearCanvasButton').addEventListener('click', function(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    //  DEMO: used by the interactive demo
+    actionCompleted({
+        action: 'Clear your canvas',
+        debug: false
+    })
 });
 
 var isTouchSupported = 'ontouchstart' in window;
@@ -65,6 +71,12 @@ pubnub.addListener({
         var occupancy = m.occupancy;
         if(occupancy > 1){ 
             document.getElementById('unit').textContent = 'doodlers';
+            
+            //  DEMO: used by the interactive demo
+            actionCompleted({
+                action: 'Draw with another user (You might need to open a new tab)',
+                debug: false
+            })
         }
         document.getElementById('occupancy').textContent = occupancy;
 
@@ -110,8 +122,7 @@ window.onbeforeunload = function(event)
     pubnub.unsubscribe({
         channels: [CHANNEL]
     });
-    event.preventDefault();
-    return event.returnValue = "Are you sure you want to leave?";
+    return "Leaving the drawing board!";
 };
 
 //Used for tracking location of mouse and updating position for other users connected to app.
@@ -133,6 +144,13 @@ function drawOnCanvas(color, startCoordinates, endCoordinates) {
 //Update canvas when other users draw.
 function drawFromStream(message) {
     if(!message && message.data.length == 0) return;
+
+    //  DEMO: used by the interactive demo
+    actionCompleted({
+        action: `View the other user's artwork`,
+        debug: false
+    })
+
     for (var i = 0; i < message.data.length;i++) {
         drawOnCanvas(message.data[i].color, message.data[i].oldCoordinates, message.data[i].newCoordinates);
     }
@@ -145,7 +163,14 @@ function draw(e) {
     if((isTouchSupported && e.touches.length == 1) || e.buttons == 1) {
         var x = isTouchSupported ? (e.targetTouches[0].pageX - canvas.offsetLeft) : (e.offsetX || e.layerX - canvas.offsetLeft);
         var y = isTouchSupported ? (e.targetTouches[0].pageY - canvas.offsetTop) : (e.offsetY || e.layerY - canvas.offsetTop);
-        var newCoordinates = {x: (x << 0), y: (y << 0)}; // round numbers for touch screens                
+        var newCoordinates = {x: (x << 0), y: (y << 0)}; // round numbers for touch screens
+        
+        //  DEMO: used by the interactive demo
+        actionCompleted({
+            action: 'Draw on the canvas',
+            debug: false
+        })
+        
         drawOnCanvas(color, oldCoordinates, newCoordinates);
 
         var data = {
@@ -161,7 +186,7 @@ function draw(e) {
             });
             plots = [];
         }
-        oldCoordinates = newCoordinates; //Update oldCoordinates
+        oldCoordinates = newCoordinates; //Update oldCoordinates       
     }          
 }
 
@@ -274,6 +299,11 @@ function setText(txt) {
             txt:txt            
         }
     });
+    //  DEMO: used by the interactive demo
+    actionCompleted({
+        action: 'Give yourself a name',
+        debug: false
+    })
 }
 
 //Sets the position of other users' mice in the canvas.
