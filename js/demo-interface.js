@@ -3,8 +3,8 @@
  * Code from https://github.com/darryncampbell-pubnub/pubnub-demo-integration
  */
  function actionCompleted (args) {
-    const pub = PUBLIC_KEY;
-    const sub = SUBSCRIBE_KEY;
+    const pub = "pub-c-c8d024f7-d239-47c3-9a7b-002f346c1849";
+    const sub = "sub-c-95fe09e0-64bb-4087-ab39-7b14659aab47";
     let identifier = "";
     let action = args.action;
     let blockDuplicateCalls = args.blockDuplicateCalls;
