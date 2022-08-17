@@ -5,6 +5,7 @@ var plots = []; //Contains the records of drawing actions.
 var oldCoordinates = {}; //Contains the starting coordinates of the mouse click.
 var batchSize = 10; //How many records of coordinates are sent at a time per PubNub publish.
 var onlyLetters = /[a-zA-z]/; //Non allowable keys to show-up when users are entering their names.
+const embeddedPage = window !== window.parent ? true : false; //Determine if application is embedded, such as in an iframe.
 const PUBLIC_KEY = "pub-c-b8772a67-0f83-478d-a25a-3fffef982565";
 const SUBSCRIBE_KEY = "sub-c-cb5cda16-3e13-42d1-af5d-9ff3ab0f352f";
 
@@ -59,8 +60,17 @@ document.getElementById('clearAllCanvasButton').addEventListener('click', functi
     })
  });
 
- //Listen for user keyboard input at anytime. Users will begin typing to replace their placeholder name.
- document.addEventListener('keydown', function(e){
+//Determine if the application is embedded (Mostly used for PubNub's demo system, as the app is embedded in an iframe).
+ if (embeddedPage) {
+    // The page is in an iframe - it should be the only iFrame
+    window.parent.frames[0].addEventListener('keydown', userTyping);
+  } else {
+    // The page is not in an iframe
+    window.addEventListener('keydown', userTyping);
+  }
+
+//Listen for user keyboard input at anytime. Users will begin typing to replace their placeholder name.
+function userTyping(e) {
     var ch = e.key;
     if(ch.toLowerCase() == "backspace" && username != placeholder){
         //If the last letter is about to be removed, replace with the placeholder.
@@ -88,9 +98,7 @@ document.getElementById('clearAllCanvasButton').addEventListener('click', functi
         } 
     }
     setText(username);
- });
- 
-
+}
 var isTouchSupported = 'ontouchstart' in window;
 var downEvent = isTouchSupported ? 'touchstart' : 'mousedown';
 var moveEvent = isTouchSupported ? 'touchmove' : 'mousemove';
@@ -123,6 +131,11 @@ pubnub.addListener({
                 action: 'Draw with another user (You might need to open a new tab)',
                 debug: false
             })
+        }
+
+        //PubNub Demo Fix: If the page is embedded in an iframe, it adds additional 2 additional occupancy count, even if no users are present.
+        if(embeddedPage) {
+            occupancy-=2;
         }
         document.getElementById('occupancy').textContent = occupancy;
 
