@@ -29,13 +29,20 @@ body {
 #drawCanvas:hover, #drawCanvas:active {
     cursor: none;
 }
-#clearCanvasButton {
+.clearCanvasButton {
     position: absolute;
     font-size: 30px;
     z-index: 1;
     background-color: transparent;
     border: none;
     cursor: none;
+}
+#clearCanvas {
+   position: absolute;   
+   min-width: 48px;
+   height: 48px;
+   display: inline-block;
+   text-align: center;
 }
 #colorSwatch {
     position: absolute;

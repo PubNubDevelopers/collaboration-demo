@@ -4,8 +4,9 @@ var users = {}; //Houses the users connected to app.
 var plots = []; //Contains the records of drawing actions.
 var oldCoordinates = {}; //Contains the starting coordinates of the mouse click.
 var batchSize = 10; //How many records of coordinates are sent at a time per PubNub publish.
-const PUBLIC_KEY = "pub-c-b8772a67-0f83-478d-a25a-3fffef982565"; //"PUBLIC_KEY_HERE";
-const SUBSCRIBE_KEY = "sub-c-cb5cda16-3e13-42d1-af5d-9ff3ab0f352f"; //"SUBSCRIBE_KEY_HERE";
+var onlyLetters = /[a-zA-z]/; //Non allowable keys to show-up when users are entering their names.
+const PUBLIC_KEY = "pub-c-b8772a67-0f83-478d-a25a-3fffef982565";
+const SUBSCRIBE_KEY = "sub-c-cb5cda16-3e13-42d1-af5d-9ff3ab0f352f";
 
 // PubNub Connection Object.
 var pubnub = new PubNub({
@@ -15,14 +16,9 @@ var pubnub = new PubNub({
     presenceTimeout:20
 });
 
-// Set username. Request for a name. If none is given, generate an ANON_ + first four characters of their pubnub uuid.
-let input = prompt("Please enter your name to join the channel.");
-var username = "";
-if (input == null || input == "") {
-    username = "ANON_"+ pubnub.getUUID().substring(0,4);
-} else {
-    username = input;
-}
+//The placeholer name is replaced for the user name upon first logging in and whenever they attempt to delete their name.
+var placeholder = "ANON_" + pubnub.getUUID().substring(0,4);
+var username = placeholder;
 setText(username);
 
 // Canvas and Drawing Settings
@@ -41,7 +37,7 @@ document.getElementById('colorSwatch').addEventListener('click', function() {
 }, false);
 
 // Clear Canvas Button Press. Clears entire canvas for just that user.
-document.getElementById('clearCanvasButton').addEventListener('click', function(){
+document.getElementById('clearSelfCanvasButton').addEventListener('click', function(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
 
     //  DEMO: used by the interactive demo
@@ -50,6 +46,50 @@ document.getElementById('clearCanvasButton').addEventListener('click', function(
         debug: false
     })
 });
+
+// Clear All Canvas Button Press. Clears canvas for every user. Passes a boolean flag to clear the canvas for all subscribers.
+document.getElementById('clearAllCanvasButton').addEventListener('click', function(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    publish({clear:true});
+  
+    //  DEMO: used by the interactive demo
+    actionCompleted({
+        action: 'Clear the canvas for all',
+        debug: false
+    })
+ });
+
+ //Listen for user keyboard input at anytime. Users will begin typing to replace their placeholder name.
+ document.addEventListener('keydown', function(e){
+    var ch = e.key;
+    if(ch.toLowerCase() == "backspace" && username != placeholder){
+        //If the last letter is about to be removed, replace with the placeholder.
+        if(username.length - 1 > 0) {       
+            username = username.substring(0,username.length-1);
+        }
+        else {
+            username = placeholder;
+        } 
+    }
+    else {
+        //Only letters are allowed.
+        if(ch.match(onlyLetters) && ch.length == 1) {
+            if (username == placeholder) {
+                username = ch;
+            }
+            else {
+                username += ch; 
+            }
+            //  DEMO: used by the interactive demo
+            actionCompleted({
+                action: 'Give yourself a name',
+                debug: false
+            })
+        } 
+    }
+    setText(username);
+ });
+ 
 
 var isTouchSupported = 'ontouchstart' in window;
 var downEvent = isTouchSupported ? 'touchstart' : 'mousedown';
@@ -63,8 +103,14 @@ canvas.addEventListener(upEvent, endDraw, false);
 // Events and Listeners
 pubnub.addListener({
     message: function(m) {
-        // Update canvas when other users draw.   
-        drawFromStream(m.message)
+        if(m.message && m.message.clear && m.message.clear == true) {
+           ctx.clearRect(0,0,canvas.width,canvas.height);
+       }
+       else {
+           // Update canvas when other users draw.  
+           drawFromStream(m.message)
+       }   
+
     },
     presence: function(m) {
         // Update occupancy
@@ -114,16 +160,6 @@ async function publish(data) {
         console.log(status);
     }		
 }
-
-//Handle Users closing or refreshing browser.
-window.onbeforeunload = function(event)
-{ 
-    //Current user has either closed browser or refreshed. Unsubscribe.
-    pubnub.unsubscribe({
-        channels: [CHANNEL]
-    });
-    return "Leaving the drawing board!";
-};
 
 //Used for tracking location of mouse and updating position for other users connected to app.
 window.onmousemove = function(event) {
@@ -210,7 +246,7 @@ function endDraw(e) {
     }
     plots = []           
     oldCoordinates = {};
-}      
+}
 
 // Mouse Tracking
 function Sprite(state) {
@@ -249,10 +285,12 @@ function Sprite(state) {
     var self = this;
     this.setState = function(state) {//Called whenever user moves mouse.
         if(!state) return;
-        if(state.txt) {
-            var removeUndefined = this.div.innerHTML.substring(9); //Removing the "undefined"
-            this.div.innerHTML = "<b>"+state.txt+"</b>" + removeUndefined;          
+        if(state.txt !== undefined) {
+            //Replace just the text of the div (until reach the img tag)
+            var replace = this.div.innerHTML.substring(this.div.innerHTML.indexOf("<img"));
+            this.div.innerHTML = state.txt + replace;          
         } 
+
         if(state.x && state.y) {
             var bounds = spriteContainer.getBoundingClientRect();
             state.x = Math.min(state.x, bounds.width-100);
@@ -299,11 +337,6 @@ function setText(txt) {
             txt:txt            
         }
     });
-    //  DEMO: used by the interactive demo
-    actionCompleted({
-        action: 'Give yourself a name',
-        debug: false
-    })
 }
 
 //Sets the position of other users' mice in the canvas.
@@ -325,7 +358,9 @@ function setPos(xy) {
 
 //Creates new users if they do not exist yet, otherwise updates the position of the mouse.
 function updateUser(uuid,state) {
-    if(!users[uuid])  users[uuid] = new Sprite(state !== undefined ? state: "");
+    if(!users[uuid]) {
+        users[uuid] = new Sprite(state !== undefined ? state: "");
+    }  
     users[uuid].setState(state);
 }
 
