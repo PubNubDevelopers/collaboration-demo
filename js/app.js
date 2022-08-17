@@ -4,8 +4,6 @@ var users = {}; //Houses the users connected to app.
 var plots = []; //Contains the records of drawing actions.
 var oldCoordinates = {}; //Contains the starting coordinates of the mouse click.
 var batchSize = 10; //How many records of coordinates are sent at a time per PubNub publish.
-var onlyLetters = /[a-zA-z]/; //Non allowable keys to show-up when users are entering their names.
-const embeddedPage = window !== window.parent ? true : false; //Determine if application is embedded, such as in an iframe.
 const PUBLIC_KEY = "pub-c-b8772a67-0f83-478d-a25a-3fffef982565";
 const SUBSCRIBE_KEY = "sub-c-cb5cda16-3e13-42d1-af5d-9ff3ab0f352f";
 
@@ -60,17 +58,8 @@ document.getElementById('clearAllCanvasButton').addEventListener('click', functi
     })
  });
 
-//Determine if the application is embedded (Mostly used for PubNub's demo system, as the app is embedded in an iframe).
- if (embeddedPage) {
-    // The page is in an iframe - it should be the only iFrame
-    window.parent.frames[0].addEventListener('keydown', userTyping);
-  } else {
-    // The page is not in an iframe
-    window.addEventListener('keydown', userTyping);
-  }
-
-//Listen for user keyboard input at anytime. Users will begin typing to replace their placeholder name.
-function userTyping(e) {
+//Listen for user keyboard input. The placeholder name will be replaced once users start typing.
+document.getElementById('nameInput').addEventListener('keydown', function(e) {
     var ch = e.key;
     if(ch.toLowerCase() == "backspace" && username != placeholder){
         //If the last letter is about to be removed, replace with the placeholder.
@@ -82,14 +71,14 @@ function userTyping(e) {
         } 
     }
     else {
-        //Only letters are allowed.
-        if(ch.match(onlyLetters) && ch.length == 1) {
+        if(ch.length == 1) {
             if (username == placeholder) {
                 username = ch;
             }
             else {
                 username += ch; 
             }
+
             //  DEMO: used by the interactive demo
             actionCompleted({
                 action: 'Give yourself a name',
@@ -98,7 +87,13 @@ function userTyping(e) {
         } 
     }
     setText(username);
-}
+});
+
+//Don't allow for selecting text in text input (interferes with logic for hover name).
+document.getElementById('nameInput').addEventListener('select', function(e) {
+    this.selectionStart = this.selectionEnd;
+});
+
 var isTouchSupported = 'ontouchstart' in window;
 var downEvent = isTouchSupported ? 'touchstart' : 'mousedown';
 var moveEvent = isTouchSupported ? 'touchmove' : 'mousemove';
@@ -123,6 +118,8 @@ pubnub.addListener({
     presence: function(m) {
         // Update occupancy
         var occupancy = m.occupancy;
+        //PubNub Demo Fix - hosting the demo in our platform causes two additional occupants to be present, even if you are the only one there.
+        occupancy-=2;
         if(occupancy > 1){ 
             document.getElementById('unit').textContent = 'doodlers';
             
@@ -133,10 +130,10 @@ pubnub.addListener({
             })
         }
 
-        //PubNub Demo Fix: If the page is embedded in an iframe, it adds additional 2 additional occupancy count, even if no users are present.
-        if(embeddedPage) {
-            occupancy-=2;
+        else if (occupancy < 2) {
+            occupancy = 0;
         }
+
         document.getElementById('occupancy').textContent = occupancy;
 
         //Handle other user mice actions based on presence event.
@@ -210,6 +207,7 @@ function draw(e) {
     e.preventDefault(); // prevent continuous touch event process e.g. scrolling
     //If touch is detected or primary mouse button pressed down while moving, draw on canvas.
     if((isTouchSupported && e.touches.length == 1) || e.buttons == 1) {
+        document.getElementById('nameInput').blur(); //Stop focus on input text once user starts drawing.
         var x = isTouchSupported ? (e.targetTouches[0].pageX - canvas.offsetLeft) : (e.offsetX || e.layerX - canvas.offsetLeft);
         var y = isTouchSupported ? (e.targetTouches[0].pageY - canvas.offsetTop) : (e.offsetY || e.layerY - canvas.offsetTop);
         var newCoordinates = {x: (x << 0), y: (y << 0)}; // round numbers for touch screens

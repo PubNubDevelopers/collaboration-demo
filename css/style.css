@@ -37,6 +37,26 @@ body {
     border: none;
     cursor: none;
 }
+::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+    color:white;
+    opacity: 1; /* Firefox */
+  }
+
+#nameInput {
+    position: absolute;
+    top: 2%;
+    width: 50%;
+    left: 25%;
+    text-align: center;
+    color: white;
+    font-size: 25px; 
+    position: absolute; 
+    z-index:1;
+    background-color: transparent;
+	border: none; 
+    outline:none;
+}
+  
 #clearCanvas {
    position: absolute;   
    min-width: 48px;
