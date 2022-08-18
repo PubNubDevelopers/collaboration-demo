@@ -268,7 +268,7 @@ function idleUnsubscribe() {
     });
 
     alert("You have been disconnected due to be idle for more than 30 seconds. Press OK to refresh and begin drawing again.");
-    location.reload();       
+    window.location.reload();       
 }
 
 //Tracks how long the user has been idle, and will unsubscribe the user if they have been idle
