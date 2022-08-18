@@ -4,6 +4,7 @@ var users = {}; //Houses the users connected to app.
 var plots = []; //Contains the records of drawing actions.
 var oldCoordinates = {}; //Contains the starting coordinates of the mouse click.
 var batchSize = 10; //How many records of coordinates are sent at a time per PubNub publish.
+var idleTime = 0; //Remove and unsubscribe users after 30 seconds of sitting idle.
 const PUBLIC_KEY = "pub-c-b8772a67-0f83-478d-a25a-3fffef982565";
 const SUBSCRIBE_KEY = "sub-c-cb5cda16-3e13-42d1-af5d-9ff3ab0f352f";
 
@@ -31,6 +32,12 @@ ctx.lineWidth = '3';
 ctx.lineCap = ctx.lineJoin = 'round';
 
 // Mouse and touch events	
+//Used to track Idle time for users. Will unsubscribe users from channel who remain idle for more than 30 seconds.
+window.onload = resetIdleTime;
+document.onmousemove = resetIdleTime;
+document.ontouchstart = resetIdleTime;
+document.onkeydown = resetIdleTime;
+
 document.getElementById('colorSwatch').addEventListener('click', function() {
     color = document.querySelector(':checked').getAttribute('data-color');
 }, false);
@@ -118,8 +125,6 @@ pubnub.addListener({
     presence: function(m) {
         // Update occupancy
         var occupancy = m.occupancy;
-        //PubNub Demo Fix - hosting the demo in our platform causes two additional occupants to be present, even if you are the only one there.
-        occupancy-=2;
         if(occupancy > 1){ 
             document.getElementById('unit').textContent = 'doodlers';
             
@@ -128,10 +133,6 @@ pubnub.addListener({
                 action: 'Draw with another user (You might need to open a new tab)',
                 debug: false
             })
-        }
-
-        else if (occupancy < 2) {
-            occupancy = 0;
         }
 
         document.getElementById('occupancy').textContent = occupancy;
@@ -257,6 +258,24 @@ function endDraw(e) {
     }
     plots = []           
     oldCoordinates = {};
+}
+
+//Unsubscribes user from channel after being idle for more than 30 seconds and refreshes page.
+function idleUnsubscribe() {
+    //Unsubscribe user to be removed from other screens.
+    pubnub.unsubscribe({
+        channels: [CHANNEL],
+    });
+
+    alert("You have been disconnected due to be idle for more than 30 seconds. Press OK to refresh and begin drawing again.");
+    location.reload();       
+}
+
+//Tracks how long the user has been idle, and will unsubscribe the user if they have been idle
+// for more than 30 seconds. Timer is reset whenever the user has moved, typed, etc.
+function resetIdleTime() {
+    clearTimeout(idleTime);
+    idleTime = setTimeout(idleUnsubscribe, 30000)
 }
 
 // Mouse Tracking
