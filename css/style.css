@@ -50,7 +50,6 @@ body {
     text-align: center;
     color: white;
     font-size: 25px; 
-    position: absolute; 
     z-index:1;
     background-color: transparent;
 	border: none; 
@@ -162,4 +161,38 @@ label[for=color06] {background: powderblue;}
     border-color: red;
     background-color: red;
     padding: 5px;
+}
+#inactiveMessage {
+    position: absolute;	
+	top: 40%;
+    width: 50%;
+    left: 25%;
+    width: fi   t-content;
+  	display: inline-block;
+  	border-radius: 8px;
+  	line-height: .9em;
+  	color: #fff;
+  	text-align: center;
+    color: white;
+    font-size: 25px;
+}
+
+#buttonJoin {
+    text-decoration: none;
+    display: inline-block;
+    font-size: 25px;
+    margin: 4px 2px;
+    transition-duration: 0.4s;
+    cursor: pointer;
+}
+
+.buttonJoin {
+    background-color: white; 
+    color: black; 
+    border: 2px solid #33687B;
+  }
+  
+.buttonJoin:hover {
+    background-color: #33687B;
+    color: white;
 }

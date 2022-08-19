@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CoDoodler Timeout</title>
+    <link rel="stylesheet" href="css/style.css">
+	<link rel="icon" href="images/pencil.png">
+</head>
+<body>
+	<div id="drawCanvas" width="300" height="300">Canvas is not supported on this browser!</div>
+	<div id="inactiveMessage">
+		<p>You have been logged out due to being inactive for over 30 seconds. Press Join to return to the drawing board</p>
+		<button id="buttonJoin" class="buttonJoin">Join</button>
+	</div>
+	<script type="text/javascript">
+		// Returns user back to drawing board as a new user.
+		document.getElementById('buttonJoin').addEventListener('click', function(){
+			window.location.href = "./index.html";
+		});
+	</script>
+</body>
+</html>

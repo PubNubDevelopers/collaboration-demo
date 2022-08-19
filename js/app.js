@@ -260,15 +260,15 @@ function endDraw(e) {
     oldCoordinates = {};
 }
 
-//Unsubscribes user from channel after being idle for more than 30 seconds and refreshes page.
+//Unsubscribes user from channel after being idle for more than 30 seconds and sends to timeout page.
 function idleUnsubscribe() {
     //Unsubscribe user to be removed from other screens.
     pubnub.unsubscribe({
-        channels: [CHANNEL],
+        channels: [CHANNEL]
     });
 
-    alert("You have been disconnected due to be idle for more than 30 seconds. Press OK to refresh and begin drawing again.");
-    window.location.reload();       
+    //Send user to timeout screen.
+    window.location.replace("./timeout.html");
 }
 
 //Tracks how long the user has been idle, and will unsubscribe the user if they have been idle
