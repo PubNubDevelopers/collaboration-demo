@@ -16,7 +16,6 @@ You can draw with others connected to the application and see these results on t
 * Each user connected can type in a name, which appears under their stylus mouse. The names can be updated and will be updated in real-time.
 * Clear your screen, or clear everyone's screen, by pressing on the waste basket icons.
 * The number of users connected is tracked and updated in the top right-corner of the screen by making use of PubNub's Presence detection.
-* Receive and display push notifications, regardless of application state.
 
 ## Demo
 Try the [application!](www.pubnub.com/demos/codoodler-collaboration-demo/)
