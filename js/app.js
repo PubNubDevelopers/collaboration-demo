@@ -5,6 +5,7 @@ var plots = []; //Contains the records of drawing actions.
 var oldCoordinates = {}; //Contains the starting coordinates of the mouse click.
 var batchSize = 10; //How many records of coordinates are sent at a time per PubNub publish.
 var idleTime = 0; //Remove and unsubscribe users after 30 seconds of sitting idle.
+var onlyLettersSpaces = /[a-zA-Z\s]/; //Allow only letters and spaces to be entered for user name input.
 const PUBLIC_KEY = "pub-c-b8772a67-0f83-478d-a25a-3fffef982565";
 const SUBSCRIBE_KEY = "sub-c-cb5cda16-3e13-42d1-af5d-9ff3ab0f352f";
 
@@ -67,31 +68,35 @@ document.getElementById('clearAllCanvasButton').addEventListener('click', functi
 
 //Listen for user keyboard input. The placeholder name will be replaced once users start typing.
 document.getElementById('nameInput').addEventListener('keydown', function(e) {
+    e.preventDefault(); //Prevent automatically adding not allowed chars.
     var ch = e.key;
     if(ch.toLowerCase() == "backspace" && username != placeholder){
         //If the last letter is about to be removed, replace with the placeholder.
         if(username.length - 1 > 0) {       
             username = username.substring(0,username.length-1);
+            document.getElementById('nameInput').value = username;
         }
         else {
             username = placeholder;
+            document.getElementById('nameInput').value = document.getElementById('nameInput').placeholder;
         } 
     }
     else {
-        if(ch.length == 1) {
+        if(ch.length == 1 && ch.match(onlyLettersSpaces) && username.length < 20) {
             if (username == placeholder) {
                 username = ch;
             }
-            else {
-                username += ch; 
-            }
+            else { //Allow only 20 characters for total length of name.
+                username += ch;
 
-            //  DEMO: used by the interactive demo
-            actionCompleted({
-                action: 'Give yourself a name',
-                debug: false
-            })
-        } 
+                //  DEMO: used by the interactive demo
+                actionCompleted({
+                    action: 'Give yourself a name',
+                    debug: false
+                }) 
+            }
+            document.getElementById('nameInput').value = username;          
+        }
     }
     setText(username);
 });
