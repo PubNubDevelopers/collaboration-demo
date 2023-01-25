@@ -35,10 +35,13 @@ ctx.lineCap = ctx.lineJoin = 'round';
 
 // Mouse and touch events	
 //Used to track Idle time for users. Will unsubscribe users from channel who remain idle for more than 30 seconds.
+/*
+    Removed for homescreen demo
 window.onload = resetIdleTime;
 document.onmousemove = resetIdleTime;
 document.ontouchstart = resetIdleTime;
 document.onkeydown = resetIdleTime;
+*/
 
 document.getElementById('colorSwatch').addEventListener('click', function() {
     color = document.querySelector(':checked').getAttribute('data-color');
@@ -172,6 +175,8 @@ pubnub.subscribe({
 //Publish data to PubNub network for subscribers (Data contains color, previous and new coordinates).
 async function publish(data) {	
     try {
+        //  Note: Considered moving to signals but average data packet size was around 880 bytes, which exceeds the maximum size allowed for signals
+        //        It is not feasible to split the packets for performance reasons.
         const result = await pubnub.publish({
             message: data,
             channel: CHANNEL				
@@ -215,7 +220,6 @@ function clearLine(startCoordinates, endCoordinates)
 
 //Update canvas when other users draw.
 function drawFromStream(message) {
-    console.log('draw from stream')
     if(!message && message.data.length == 0) return;
 
     //  DEMO: used by the interactive demo
@@ -289,7 +293,6 @@ function endDraw(e) {
 
 //Unsubscribes user from channel after being idle for more than 30 seconds and sends to timeout page.
 function idleUnsubscribe() {
-    return;
     //Unsubscribe user to be removed from other screens.
     pubnub.unsubscribe({
         channels: [CHANNEL]
