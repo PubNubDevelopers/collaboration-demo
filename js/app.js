@@ -6,14 +6,16 @@ var oldCoordinates = {}; //Contains the starting coordinates of the mouse click.
 var batchSize = 10; //How many records of coordinates are sent at a time per PubNub publish.
 var idleTime = 0; //Remove and unsubscribe users after 30 seconds of sitting idle.
 var onlyLettersSpaces = /[a-zA-Z\s]/; //Allow only letters and spaces to be entered for user name input.
-const PUBLIC_KEY = "pub-c-b8772a67-0f83-478d-a25a-3fffef982565";
-const SUBSCRIBE_KEY = "sub-c-cb5cda16-3e13-42d1-af5d-9ff3ab0f352f";
+const drawWidth = 6; //  The width of the drawing pen
+const eraseWidth = drawWidth + 2; //  The width of the erase pen, if you set this the same as the draw width, it does not fully erase the line
+const PUBLIC_KEY = "pub-c-f9ba742d-2064-4067-b342-11b7ad51b1f0";
+const SUBSCRIBE_KEY = "sub-c-5d65d651-2b6e-448b-a86e-278d608c0563";
 
 // PubNub Connection Object.
 var pubnub = new PubNub({
     publishKey: PUBLIC_KEY,
     subscribeKey: SUBSCRIBE_KEY,
-    uuid:self.crypto.randomUUID(),
+    userId:("" + self.crypto.getRandomValues(new Uint32Array(1))),
     presenceTimeout:20
 });
 
@@ -29,7 +31,6 @@ var color = document.querySelector(':checked').getAttribute('data-color');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 ctx.strokeStyle = color;
-ctx.lineWidth = '3';
 ctx.lineCap = ctx.lineJoin = 'round';
 
 // Mouse and touch events	
@@ -123,7 +124,10 @@ pubnub.addListener({
        }
        else {
            // Update canvas when other users draw.  
-           drawFromStream(m.message)
+           if (m.publisher != pubnub.getUUID())
+           {
+             drawFromStream(m.message)
+           }
        }   
 
     },
@@ -187,14 +191,31 @@ window.onmousemove = function(event) {
 //Draw on canvas
 function drawOnCanvas(color, startCoordinates, endCoordinates) {
     ctx.strokeStyle = color;
+    ctx.lineWidth = drawWidth;
     ctx.beginPath();
     ctx.moveTo(startCoordinates.x, startCoordinates.y);
     ctx.lineTo(endCoordinates.x, endCoordinates.y);
     ctx.stroke();          
+
+
+    setTimeout(function() {clearLine(startCoordinates, endCoordinates)}, 500)
+
+}
+
+function clearLine(startCoordinates, endCoordinates)
+{
+    ctx.strokeStyle = '#1a5f96';
+    ctx.lineWidth = eraseWidth;
+    ctx.beginPath();
+    ctx.moveTo(startCoordinates.x, startCoordinates.y);
+    ctx.lineTo(endCoordinates.x, endCoordinates.y);
+    ctx.stroke();          
+
 }
 
 //Update canvas when other users draw.
 function drawFromStream(message) {
+    console.log('draw from stream')
     if(!message && message.data.length == 0) return;
 
     //  DEMO: used by the interactive demo
@@ -214,8 +235,8 @@ function draw(e) {
     //If touch is detected or primary mouse button pressed down while moving, draw on canvas.
     if((isTouchSupported && e.touches.length == 1) || e.buttons == 1) {
         document.getElementById('nameInput').blur(); //Stop focus on input text once user starts drawing.
-        var x = isTouchSupported ? (e.targetTouches[0].pageX - canvas.offsetLeft) : (e.offsetX || e.layerX - canvas.offsetLeft);
-        var y = isTouchSupported ? (e.targetTouches[0].pageY - canvas.offsetTop) : (e.offsetY || e.layerY - canvas.offsetTop);
+        var x = isTouchSupported ? (e.targetTouches[0].pageX + 10) : (e.offsetX - 10 || e.layerX - canvas.offsetLeft);
+        var y = isTouchSupported ? (e.targetTouches[0].pageY) : (e.offsetY || e.layerY - canvas.offsetTop);
         var newCoordinates = {x: (x << 0), y: (y << 0)}; // round numbers for touch screens
         
         //  DEMO: used by the interactive demo
@@ -247,8 +268,8 @@ function draw(e) {
 //On MouseDown, obtain current coordinates and save as starting coordinates.
 function startDraw(e) {
     e.preventDefault();
-    var x = isTouchSupported ? (e.targetTouches[0].pageX - canvas.offsetLeft) : (e.offsetX || e.layerX - canvas.offsetLeft);
-    var y = isTouchSupported ? (e.targetTouches[0].pageY - canvas.offsetTop) : (e.offsetY || e.layerY - canvas.offsetTop);
+    var x = isTouchSupported ? (e.targetTouches[0].pageX + 10) : (e.offsetX - 10 || e.layerX - canvas.offsetLeft);
+    var y = isTouchSupported ? (e.targetTouches[0].pageY) : (e.offsetY || e.layerY - canvas.offsetTop);
     oldCoordinates = {x: (x << 0), y: (y << 0)};
 }
 
@@ -263,10 +284,12 @@ function endDraw(e) {
     }
     plots = []           
     oldCoordinates = {};
+    document.getElementById('nameInput').focus();
 }
 
 //Unsubscribes user from channel after being idle for more than 30 seconds and sends to timeout page.
 function idleUnsubscribe() {
+    return;
     //Unsubscribe user to be removed from other screens.
     pubnub.unsubscribe({
         channels: [CHANNEL]
@@ -292,7 +315,7 @@ function Sprite(state) {
     this.div.readOnly = true;
     this.div.style.pointerEvents = "none"; //Make the textbox non interactive with the cursor in order to be able to change color.
     this.div.style.left = this.x+'px';
-    this.div.style.top  = this.y+'px';
+    this.div.style.top  = (this.y)+'px';
     this.div.classList.add('sprite');
     
     //Random color for Mouse Name.
@@ -328,8 +351,8 @@ function Sprite(state) {
 
         if(state.x && state.y) {
             var bounds = spriteContainer.getBoundingClientRect();
-            state.x = Math.min(state.x, bounds.width-100);
-            state.y = Math.min(state.y, bounds.height-50);
+            state.x = Math.min(state.x, bounds.width+40);
+            state.y = Math.min(state.y, bounds.height+20);
             self.moveTo(state.x,state.y);
         }
     };

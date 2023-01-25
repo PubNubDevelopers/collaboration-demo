@@ -5,10 +5,15 @@
     <title>PubNub Collaboration Demo</title>
     <link rel="stylesheet" href="css/style.css">
 	<link rel="icon" href="images/pencil.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<!--  Fonts -->
+    <link href='https://fonts.googleapis.com/css?family=Poppins' rel='stylesheet'>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet" />
+    
 </head>
 <body>
 	<div id="name">
-		<input type="text" placeholder="Enter Your Name!" id="nameInput" maxlength="20" autocomplete="off" autofocus="true" />
+		<input type="text" placeholder="Type Your Name!" id="nameInput" maxlength="20" autocomplete="off" autofocus="true" />
    </div>
     <div id="clearCanvas">
        <button id="clearSelfCanvasButton" class="clearCanvasButton">&#128465</button>
@@ -32,11 +37,11 @@
 		</section>
 	</section>
 </div>
-<div id="clearCanvas" style="bottom: 50px;">
+<div id="clearAllCanvas">
        <button id="clearAllCanvasButton" class="clearCanvasButton" style="bottom:30px">&#128465</button>
        <label for="clearAllCanvasButton" style="font-size:15px;z-index:1; width:fit-content;">Clear All</label>
    </div>
-<script src="https://cdn.pubnub.com/sdk/javascript/pubnub.7.1.2.js" defer></script>
+<script src="https://cdn.pubnub.com/sdk/javascript/pubnub.7.2.2.js" defer></script>
 <!-- Interactive Demo Framework -->
 <script type="text/javascript" src="https://darryncampbell-pubnub.github.io/pubnub-demo-utils/js/interactive-demo-interface/v2/demo-interface.js" defer></script>
 <script src="js/app.js" defer></script>
