@@ -8,6 +8,7 @@ var idleTime = 0; //Remove and unsubscribe users after 30 seconds of sitting idl
 var onlyLettersSpaces = /[a-zA-Z\s]/; //Allow only letters and spaces to be entered for user name input.
 const drawWidth = 6; //  The width of the drawing pen
 const eraseWidth = drawWidth + 2; //  The width of the erase pen, if you set this the same as the draw width, it does not fully erase the line
+const clearLineOffsetDuration = 1000;    //  The time (ms) after which the drawn line will be erased
 const PUBLIC_KEY = "pub-c-f9ba742d-2064-4067-b342-11b7ad51b1f0";
 const SUBSCRIBE_KEY = "sub-c-5d65d651-2b6e-448b-a86e-278d608c0563";
 
@@ -203,7 +204,7 @@ function drawOnCanvas(color, startCoordinates, endCoordinates) {
     ctx.stroke();          
 
 
-    setTimeout(function() {clearLine(startCoordinates, endCoordinates)}, 500)
+    setTimeout(function() {clearLine(startCoordinates, endCoordinates)}, clearLineOffsetDuration)
 
 }
 
