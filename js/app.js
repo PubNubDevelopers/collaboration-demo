@@ -313,7 +313,6 @@ function resetIdleTime() {
 
 // Mouse Tracking
 function Sprite(state) {
-    console.log(state)
     this.x = 100;
     this.y = 100;
     this.div = document.createElement('div');
@@ -326,7 +325,6 @@ function Sprite(state) {
     if (state == "" || (state != "" && state.txt != username))
     {
         this.div.classList.add('remoteSprite');
-        console.log('remote user')
     }
     
     //Random color for Mouse Name.
