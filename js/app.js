@@ -139,7 +139,7 @@ pubnub.addListener({
         // Update occupancy
         var occupancy = m.occupancy;
         if(occupancy > 1){ 
-            document.getElementById('unit').textContent = 'doodlers';
+            //document.getElementById('unit').textContent = 'doodlers';
             
             //  DEMO: used by the interactive demo
             actionCompleted({
@@ -148,6 +148,7 @@ pubnub.addListener({
             })
         }
 
+        occupancy += " active users";
         document.getElementById('occupancy').textContent = occupancy;
 
         //Handle other user mice actions based on presence event.
@@ -210,7 +211,7 @@ function drawOnCanvas(color, startCoordinates, endCoordinates) {
 
 function clearLine(startCoordinates, endCoordinates)
 {
-    ctx.strokeStyle = '#1a5f96';
+    ctx.strokeStyle = '#FFFFFF';
     ctx.lineWidth = eraseWidth;
     ctx.beginPath();
     ctx.moveTo(startCoordinates.x, startCoordinates.y);
@@ -289,7 +290,7 @@ function endDraw(e) {
     }
     plots = []           
     oldCoordinates = {};
-    document.getElementById('nameInput').focus();
+    //document.getElementById('nameInput').focus();
 }
 
 //Unsubscribes user from channel after being idle for more than 30 seconds and sends to timeout page.
@@ -312,6 +313,7 @@ function resetIdleTime() {
 
 // Mouse Tracking
 function Sprite(state) {
+    console.log(state)
     this.x = 100;
     this.y = 100;
     this.div = document.createElement('div');
@@ -321,25 +323,33 @@ function Sprite(state) {
     this.div.style.left = this.x+'px';
     this.div.style.top  = (this.y)+'px';
     this.div.classList.add('sprite');
+    if (state == "" || (state != "" && state.txt != username))
+    {
+        this.div.classList.add('remoteSprite');
+        console.log('remote user')
+    }
     
     //Random color for Mouse Name.
-    var rgb = {
-        r: Math.floor(Math.random() * 255),
-        g: Math.floor(Math.random() * 255),
-        b: Math.floor(Math.random() * 255)
-    }; 
-    this.div.style.backgroundColor = `rgba(${rgb.r},${rgb.g},${rgb.b}, 0.75)`;
-    this.div.style.borderColor = `rgba(${rgb.r},${rgb.g},${rgb.b}, 1)`;
+//    var rgb = {
+//        r: Math.floor(Math.random() * 255),
+//        g: Math.floor(Math.random() * 255),
+//        b: Math.floor(Math.random() * 255)
+//    }; 
+//    this.div.style.backgroundColor = `rgba(${rgb.r},${rgb.g},${rgb.b}, 0.75)`;
+//    this.div.style.borderColor = `rgba(${rgb.r},${rgb.g},${rgb.b}, 1)`;
 
     //Create Pencil icon to mimic user cursor. 
     this.img = document.createElement('img');
-    this.img.src = "images/pencil.png";
+    this.img.src = "images/pencil2.png";
     this.img.style.position = "absolute";
-    this.img.style.width = "45px";
-    this.img.style.height = "45px";
-    this.img.style.transform = "rotate(130deg)";
-    this.img.style.left = this.x - 140 + 'px';
-    this.img.style.bottom = this.y - 80 + 'px';
+    this.img.style.width = "22px";
+    this.img.style.height = "22px";
+    //  Offset between pencil tip and sprite position
+    this.img.style.transform = "rotate(0deg)";
+    //this.img.style.left = this.x - 130 + 'px';
+    //this.img.style.bottom = this.y - 45 + 'px';
+    this.img.style.left = this.x - 125 + 'px';
+    this.img.style.bottom = this.y - 125 + 'px';
     this.div.appendChild(this.img);
 
     var spriteContainer = document.getElementById("sprite-container");
@@ -384,8 +394,9 @@ function Sprite(state) {
         }
     };
     this.moveTo = function(x,y) {
-        this.tx = x;
-        this.ty = y;
+        //  Updates to position following change of icon / sprite for rebranding
+        this.tx = x-2;
+        this.ty = y-80;
         this.update();
     }
 }

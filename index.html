@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>PubNub Collaboration Demo</title>
     <link rel="stylesheet" href="css/style.css">
-	<link rel="icon" href="images/pencil.png">
+	<link rel="icon" href="images/pencil2.png">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 	<!--  Fonts -->
     <link href='https://fonts.googleapis.com/css?family=Poppins' rel='stylesheet'>
@@ -13,7 +13,7 @@
 </head>
 <body>
 	<div id="name">
-		<input type="text" placeholder="Type Your Name!" id="nameInput" maxlength="20" autocomplete="off" autofocus="true" />
+		<input type="text" placeholder="Enter name" id="nameInput" maxlength="20" autocomplete="off" />
    </div>
     <div id="clearCanvas">
        <button id="clearSelfCanvasButton" class="clearCanvasButton">&#128465</button>
@@ -21,19 +21,22 @@
    </div>
     <div id="sprite-container">  	
 		<div class="bubble">
-			<span id="occupancy">0</span>
-			<span id="unit">doodler</span>
+			<span class="bubblePresence">               
+				<svg width="8" height="8" viewBox="0 0 6 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+					<circle cx="3" cy="3" r="3" fill="#72A9AD"/>
+					</svg>					
+			</span>  
+			<span id="occupancy">0 active users</span>
+			<!--span id="unit">doodler</span-->
 		</div>		
 	<section id="main">
 		<canvas id="drawCanvas" width="300" height="300">Canvas is not supported on this browser!</canvas>
 
 		<section id="colorSwatch" class="colowSwatch">
-			<input type="radio" name="color" id="color01" data-color="gold" checked><label for="color01"></label> 
-			<input type="radio" name="color" id="color02" data-color="darkorange">	<label for="color02"></label>  
-			<input type="radio" name="color" id="color03" data-color="navy">		<label for="color03"></label>  
-			<input type="radio" name="color" id="color04" data-color="yellowgreen">	<label for="color04"></label>  
-			<input type="radio" name="color" id="color05" data-color="firebrick">	<label for="color05"></label>  
-			<input type="radio" name="color" id="color06" data-color="powderblue">	<label for="color06"></label>
+			<input type="radio" name="color" id="color01" data-color="#d6b0cd" checked><label for="color01"></label> 
+			<input type="radio" name="color" id="color02" data-color="#92bdc0">	<label for="color02"></label>  
+			<input type="radio" name="color" id="color03" data-color="#065b6a">		<label for="color03"></label>  
+			<input type="radio" name="color" id="color04" data-color="#161c2d">	<label for="color04"></label>  
 		</section>
 	</section>
 </div>
