@@ -208,7 +208,6 @@ function draw(e) {
     e.preventDefault(); // prevent continuous touch event process e.g. scrolling
     //If touch is detected or primary mouse button pressed down while moving, draw on canvas.
     if((isTouchSupported && e.touches.length == 1) || e.buttons == 1) {
-        console.log('draw')
         //document.getElementById('nameInput').blur(); //Stop focus on input text once user starts drawing.
         var x = isTouchSupported ? (e.targetTouches[0].pageX + 10) : (e.offsetX/* - 10 || e.layerX - canvas.offsetLeft*/);
         var y = isTouchSupported ? (e.targetTouches[0].pageY) : (e.offsetY || e.layerY - canvas.offsetTop);
@@ -411,16 +410,24 @@ async function updateUser(uuid,state) {
         users[uuid] = new Sprite(state !== undefined ? state: "");
         //  Look up user information in the PN objects (if available)
         try {
-            const result = await pubnub.objects.getUUIDMetadata({
-              uuid: uuid
-            })
-            if (result.data.profileUrl !== undefined)
+            if (uuid == pubnub.getUUID())
             {
-                users[uuid].setState({'avatarUrl': result.data.profileUrl})
-            }
-            if (result.data.name !== undefined)
-            {
-                users[uuid].setState({txt: result.data.name})
+                const result = await pubnub.objects.getUUIDMetadata({
+                  uuid: uuid
+                })
+                if (result.data.profileUrl !== undefined)
+                {
+                    users[uuid].setState({'avatarUrl': result.data.profileUrl})
+                }
+                if (result.data.name !== undefined)
+                {
+                    username = result.data.name
+                    setText(result.data.name)
+                    if (state.txt !== undefined)
+                    {
+                        state.txt = username
+                    }
+                }
             }
         } catch (e) {
             //  Some error retrieving our own meta data - probably does not exist
