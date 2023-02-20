@@ -6,16 +6,6 @@ var oldCoordinates = {}; //Contains the starting coordinates of the mouse click.
 var batchSize = 10; //How many records of coordinates are sent at a time per PubNub publish.
 var idleTime = 0; //Remove and unsubscribe users after 30 seconds of sitting idle.
 var onlyLettersSpaces = /[a-zA-Z\s]/; //Allow only letters and spaces to be entered for user name input.
-const PUBLIC_KEY = "pub-c-b8772a67-0f83-478d-a25a-3fffef982565";
-const SUBSCRIBE_KEY = "sub-c-cb5cda16-3e13-42d1-af5d-9ff3ab0f352f";
-
-// PubNub Connection Object.
-var pubnub = new PubNub({
-    publishKey: PUBLIC_KEY,
-    subscribeKey: SUBSCRIBE_KEY,
-    uuid:self.crypto.randomUUID(),
-    presenceTimeout:20
-});
 
 //The placeholer name is replaced for the user name upon first logging in and whenever they attempt to delete their name.
 var placeholder = "ANON_" + pubnub.getUUID().substring(0,4);
@@ -29,15 +19,17 @@ var color = document.querySelector(':checked').getAttribute('data-color');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 ctx.strokeStyle = color;
-ctx.lineWidth = '3';
 ctx.lineCap = ctx.lineJoin = 'round';
 
 // Mouse and touch events	
 //Used to track Idle time for users. Will unsubscribe users from channel who remain idle for more than 30 seconds.
-window.onload = resetIdleTime;
-document.onmousemove = resetIdleTime;
-document.ontouchstart = resetIdleTime;
-document.onkeydown = resetIdleTime;
+if (typeof IDLE_TIMEOUT !== 'undefined' && IDLE_TIMEOUT == true)
+{
+    window.onload = resetIdleTime;
+    document.onmousemove = resetIdleTime;
+    document.ontouchstart = resetIdleTime;
+    document.onkeydown = resetIdleTime;
+}
 
 document.getElementById('colorSwatch').addEventListener('click', function() {
     color = document.querySelector(':checked').getAttribute('data-color');
@@ -123,15 +115,22 @@ pubnub.addListener({
        }
        else {
            // Update canvas when other users draw.  
-           drawFromStream(m.message)
+           if (m.publisher != pubnub.getUUID())
+            {
+            drawFromStream(m.message)
+            }
        }   
-
     },
     presence: function(m) {
         // Update occupancy
         var occupancy = m.occupancy;
         if(occupancy > 1){ 
-            document.getElementById('unit').textContent = 'doodlers';
+            if (document.getElementById('unit')) {
+                document.getElementById('unit').textContent = 'doodlers';
+            }
+            else {
+                occupancy += " active users";
+            }
             
             //  DEMO: used by the interactive demo
             actionCompleted({
@@ -168,6 +167,8 @@ pubnub.subscribe({
 //Publish data to PubNub network for subscribers (Data contains color, previous and new coordinates).
 async function publish(data) {	
     try {
+        //  Note: Considered moving to signals but average data packet size was around 880 bytes, which exceeds the maximum size allowed for signals
+        //        It is not feasible to split the packets for performance reasons.
         const result = await pubnub.publish({
             message: data,
             channel: CHANNEL				
@@ -186,11 +187,29 @@ window.onmousemove = function(event) {
 
 //Draw on canvas
 function drawOnCanvas(color, startCoordinates, endCoordinates) {
+
     ctx.strokeStyle = color;
+    ctx.lineWidth = DRAW_WIDTH;
+    ctx.beginPath();
+    ctx.moveTo(startCoordinates.x, startCoordinates.y);
+    ctx.lineTo(endCoordinates.x, endCoordinates.y);
+    ctx.stroke();     
+    
+    if (typeof CLEAR_LINE_OFFSET_DURATION !== 'undefined')
+    {
+        setTimeout(function() {clearLine(startCoordinates, endCoordinates)}, CLEAR_LINE_OFFSET_DURATION)
+    }
+}
+
+function clearLine(startCoordinates, endCoordinates)
+{
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = ERASE_WIDTH;
     ctx.beginPath();
     ctx.moveTo(startCoordinates.x, startCoordinates.y);
     ctx.lineTo(endCoordinates.x, endCoordinates.y);
     ctx.stroke();          
+
 }
 
 //Update canvas when other users draw.
@@ -214,8 +233,8 @@ function draw(e) {
     //If touch is detected or primary mouse button pressed down while moving, draw on canvas.
     if((isTouchSupported && e.touches.length == 1) || e.buttons == 1) {
         document.getElementById('nameInput').blur(); //Stop focus on input text once user starts drawing.
-        var x = isTouchSupported ? (e.targetTouches[0].pageX - canvas.offsetLeft) : (e.offsetX || e.layerX - canvas.offsetLeft);
-        var y = isTouchSupported ? (e.targetTouches[0].pageY - canvas.offsetTop) : (e.offsetY || e.layerY - canvas.offsetTop);
+        var x = isTouchSupported ? (e.targetTouches[0].pageX + 10) : (e.offsetX/* - 10 || e.layerX - canvas.offsetLeft*/);
+        var y = isTouchSupported ? (e.targetTouches[0].pageY) : (e.offsetY || e.layerY - canvas.offsetTop);
         var newCoordinates = {x: (x << 0), y: (y << 0)}; // round numbers for touch screens
         
         //  DEMO: used by the interactive demo
@@ -247,8 +266,8 @@ function draw(e) {
 //On MouseDown, obtain current coordinates and save as starting coordinates.
 function startDraw(e) {
     e.preventDefault();
-    var x = isTouchSupported ? (e.targetTouches[0].pageX - canvas.offsetLeft) : (e.offsetX || e.layerX - canvas.offsetLeft);
-    var y = isTouchSupported ? (e.targetTouches[0].pageY - canvas.offsetTop) : (e.offsetY || e.layerY - canvas.offsetTop);
+    var x = isTouchSupported ? (e.targetTouches[0].pageX + 10) : (e.offsetX - 10 || e.layerX - canvas.offsetLeft);
+    var y = isTouchSupported ? (e.targetTouches[0].pageY) : (e.offsetY || e.layerY - canvas.offsetTop);
     oldCoordinates = {x: (x << 0), y: (y << 0)};
 }
 
@@ -263,6 +282,11 @@ function endDraw(e) {
     }
     plots = []           
     oldCoordinates = {};
+
+    if (typeof NAME_AUTOFOCUS !== 'undefined' && NAME_AUTOFOCUS == true)
+    {
+        document.getElementById('nameInput').focus();
+    }
 }
 
 //Unsubscribes user from channel after being idle for more than 30 seconds and sends to timeout page.
@@ -294,26 +318,35 @@ function Sprite(state) {
     this.div.style.left = this.x+'px';
     this.div.style.top  = this.y+'px';
     this.div.classList.add('sprite');
+    if (state == "" || (state != "" && state.txt != username))
+    {
+        this.div.classList.add('remoteSprite');
+    }
     
     //Random color for Mouse Name.
-    var rgb = {
-        r: Math.floor(Math.random() * 255),
-        g: Math.floor(Math.random() * 255),
-        b: Math.floor(Math.random() * 255)
-    }; 
-    this.div.style.backgroundColor = `rgba(${rgb.r},${rgb.g},${rgb.b}, 0.75)`;
-    this.div.style.borderColor = `rgba(${rgb.r},${rgb.g},${rgb.b}, 1)`;
+    setRandomSpriteColor(this)
 
     //Create Pencil icon to mimic user cursor. 
     this.img = document.createElement('img');
-    this.img.src = "images/pencil.png";
+    this.img.src = PENCIL_IMAGE;
     this.img.style.position = "absolute";
-    this.img.style.width = "45px";
-    this.img.style.height = "45px";
-    this.img.style.transform = "rotate(130deg)";
-    this.img.style.left = this.x - 140 + 'px';
-    this.img.style.bottom = this.y - 80 + 'px';
+    this.img.style.width = PENCIL_WIDTH;
+    this.img.style.height = PENCIL_HEIGHT;
+    this.img.style.transform = PENCIL_TRANSFORM;
+    this.img.style.left = this.x - PENCIL_X_OFFSET + 'px';
+    this.img.style.bottom = this.y - PENCIL_Y_OFFSET + 'px';
+
     this.div.appendChild(this.img);
+
+    this.avatarImg = document.createElement('img');
+    this.avatarImg.src = '';
+    this.avatarImg.style.position = 'absolute'
+    this.avatarImg.style.width = '25px';
+    this.avatarImg.style.height = '25px';
+    this.avatarImg.style.right = '-30px';
+    this.avatarImg.style.bottom = '5px';
+    this.avatarImg.style.display = 'none';
+    this.div.appendChild(this.avatarImg);
 
     var spriteContainer = document.getElementById("sprite-container");
     spriteContainer.appendChild(this.div);
@@ -324,12 +357,16 @@ function Sprite(state) {
             //Replace just the text of the div (until reach the img tag)
             var replace = this.div.innerHTML.substring(this.div.innerHTML.indexOf("<img"));
             this.div.innerHTML = state.txt + replace;          
+        }
+        if(state.avatarUrl !== undefined) {
+            this.div.lastChild.src = state.avatarUrl
+            this.div.lastChild.style.display = 'block'
         } 
 
         if(state.x && state.y) {
             var bounds = spriteContainer.getBoundingClientRect();
-            state.x = Math.min(state.x, bounds.width-100);
-            state.y = Math.min(state.y, bounds.height-50);
+            state.x = Math.min(state.x, bounds.width+40);
+            state.y = Math.min(state.y, bounds.height+20);
             self.moveTo(state.x,state.y);
         }
     };
@@ -357,8 +394,8 @@ function Sprite(state) {
         }
     };
     this.moveTo = function(x,y) {
-        this.tx = x;
-        this.ty = y;
+        this.tx = x - PENCIL_SPRITE_X_ADJUST;
+        this.ty = y - PENCIL_SPRITE_Y_ADJUST;
         this.update();
     }
 }
@@ -392,9 +429,25 @@ function setPos(xy) {
 }
 
 //Creates new users if they do not exist yet, otherwise updates the position of the mouse.
-function updateUser(uuid,state) {
+async function updateUser(uuid,state) {
     if(!users[uuid]) {
         users[uuid] = new Sprite(state !== undefined ? state: "");
+        //  Look up user information in the PN objects (if available)
+        try {
+            const result = await pubnub.objects.getUUIDMetadata({
+              uuid: uuid
+            })
+            if (result.data.profileUrl !== undefined)
+            {
+                users[uuid].setState({'avatarUrl': result.data.profileUrl})
+            }
+            if (result.data.name !== undefined)
+            {
+                users[uuid].setState({txt: result.data.name})
+            }
+        } catch (e) {
+            //  Some error retrieving our own meta data - probably does not exist
+          }
     }  
     users[uuid].setState(state);
 }
@@ -406,3 +459,4 @@ function removeUser(uuid) {
         delete users[uuid];
     }
 }
+

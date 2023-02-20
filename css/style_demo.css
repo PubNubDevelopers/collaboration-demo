@@ -1,0 +1,97 @@
+body {
+    background: url(../images/grid-pattern.png) left top repeat, 
+    			-webkit-radial-gradient(50% 15%, #2c98dd, #1a5f96) no-repeat;
+    background: url(../images/grid-pattern.png) left top repeat, 
+    			-moz-radial-gradient(50% 15%, #2c98dd, #1a5f96) no-repeat;
+    background: url(../images/grid-pattern.png) left top repeat, 
+    			-ms-radial-gradient(50% 15%, #2c98dd, #1a5f96) no-repeat;
+    background: url(../images/grid-pattern.png) left top repeat, 
+    			-o-radial-gradient(50% 15%, #2c98dd, #1a5f96) no-repeat;
+    background: url(../images/grid-pattern.png) left top repeat, 
+    			radial-gradient(circle farthest-side at 50% 15%, #2c98dd, #1a5f96) no-repeat;
+    background-color: #1a5f96;
+}
+
+#nameInput {
+    position: absolute;
+    top: 2%;
+    width: 50%;
+    left: 25%;
+    text-align: center;
+    color: white;
+    font-size: 25px; 
+    z-index:1;
+    background-color: transparent;
+	border: none; 
+    outline:none;
+    caret-color: transparent;
+}
+
+#colorSwatch {
+    position: absolute;
+    bottom: 50px;
+    right: 50%;
+    margin-right: -150px;
+    cursor: none;
+}
+
+input[type=radio]:checked + label::after {
+	content: '\2712';
+	position: absolute;
+	left: 8px;
+}
+
+label {
+    padding-right: 5px;
+	color: #fff;
+}
+
+label[for=color01] {background: gold;}
+label[for=color02] {background: darkorange;}
+label[for=color03] {background: navy;}
+label[for=color04] {background: yellowgreen;}
+label[for=color05] {background: firebrick;}
+label[for=color06] {background: powderblue;}
+
+.bubble {
+	-webkit-transition: all .5s;
+	transition: all .5s;
+	position: absolute;	
+	right: 15px;
+  	min-width: 48px;
+  	height: 48px;
+  	display: inline-block;
+  	border-radius: 8px;
+  	line-height: .9em;
+  	color: #fff;
+  	text-align: center;
+  	background: #33687B;
+    z-index:1
+}
+.bubble span {
+  	display: block;
+  	margin: 5px auto;
+  	font-size: 10px;
+}
+.bubble #occupancy {
+  	font-size: 32px;
+}
+
+#sprite-container {
+    left: 30px;
+    right:0;
+}
+
+.sprite {
+    min-width: 10px;
+    min-height: 10px;
+    border: 0px solid red;
+    position: absolute;
+    font-family: sans-serif;
+    color: white;
+    border-radius: 10px;
+    border: 2px solid;
+    border-color: red;
+    background-color: red;
+    padding: 5px;
+}
