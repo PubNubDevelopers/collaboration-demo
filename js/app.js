@@ -66,6 +66,10 @@ document.getElementById('nameInput').addEventListener('keyup', function(e) {
     {
         username = placeholder;
     }
+    actionCompleted({
+        action: 'Give yourself a name',
+        debug: false
+    })
     setText(username);
 });
 
@@ -194,7 +198,7 @@ function drawFromStream(message) {
 
     //  DEMO: used by the interactive demo
     actionCompleted({
-        action: `View the other user's artwork`,
+        action: "View the other user's artwork",
         debug: false
     })
 
