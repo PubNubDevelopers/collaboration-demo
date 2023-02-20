@@ -59,36 +59,12 @@ document.getElementById('clearAllCanvasButton').addEventListener('click', functi
  });
 
 //Listen for user keyboard input. The placeholder name will be replaced once users start typing.
-document.getElementById('nameInput').addEventListener('keydown', function(e) {
-    e.preventDefault(); //Prevent automatically adding not allowed chars.
-    var ch = e.key;
-    if(ch.toLowerCase() == "backspace" && username != placeholder){
-        //If the last letter is about to be removed, replace with the placeholder.
-        if(username.length - 1 > 0) {       
-            username = username.substring(0,username.length-1);
-            document.getElementById('nameInput').value = username;
-        }
-        else {
-            username = placeholder;
-            document.getElementById('nameInput').value = document.getElementById('nameInput').placeholder;
-        } 
-    }
-    else {
-        if(ch.length == 1 && ch.match(onlyLettersSpaces) && username.length < 20) {
-            if (username == placeholder) {
-                username = ch;
-            }
-            else { //Allow only 20 characters for total length of name.
-                username += ch;
-
-                //  DEMO: used by the interactive demo
-                actionCompleted({
-                    action: 'Give yourself a name',
-                    debug: false
-                }) 
-            }
-            document.getElementById('nameInput').value = username;          
-        }
+document.getElementById('nameInput').addEventListener('keyup', function(e) {
+    //e.preventDefault(); //Prevent automatically adding not allowed chars.
+    username = document.getElementById('nameInput').value;
+    if (username.length <= 0)
+    {
+        username = placeholder;
     }
     setText(username);
 });
@@ -232,7 +208,8 @@ function draw(e) {
     e.preventDefault(); // prevent continuous touch event process e.g. scrolling
     //If touch is detected or primary mouse button pressed down while moving, draw on canvas.
     if((isTouchSupported && e.touches.length == 1) || e.buttons == 1) {
-        document.getElementById('nameInput').blur(); //Stop focus on input text once user starts drawing.
+        console.log('draw')
+        //document.getElementById('nameInput').blur(); //Stop focus on input text once user starts drawing.
         var x = isTouchSupported ? (e.targetTouches[0].pageX + 10) : (e.offsetX/* - 10 || e.layerX - canvas.offsetLeft*/);
         var y = isTouchSupported ? (e.targetTouches[0].pageY) : (e.offsetY || e.layerY - canvas.offsetTop);
         var newCoordinates = {x: (x << 0), y: (y << 0)}; // round numbers for touch screens
