@@ -69,7 +69,7 @@ Note: You may have also seen a variant of this application on the PubNub homepag
 ## Links
 
 - Demo Link: https://www.pubnub.com/demos/codoodler-collaboration-demo/
-- Tutorial Link: https://www.pubnub.com/tutorials/codoodler-collaboration/
+- Tutorial Link: https://www.pubnub.com/tutorials/collaboration/
 - How-To create collaborative applications:
 - Blog post on collaborative applications:
 

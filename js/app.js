@@ -94,10 +94,15 @@ pubnub.addListener({
            ctx.clearRect(0,0,canvas.width,canvas.height);
        }
        else {
+
            // Update canvas when other users draw.  
            if (m.publisher != pubnub.getUUID())
             {
             drawFromStream(m.message)
+            }
+            else if (typeof ALWAYS_DRAW_RECEIVED_POINTS !== 'undefined' && ALWAYS_DRAW_RECEIVED_POINTS == true)
+            {
+                drawFromStream(m.message)
             }
        }   
     },
