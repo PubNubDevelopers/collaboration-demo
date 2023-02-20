@@ -410,7 +410,7 @@ async function updateUser(uuid,state) {
         users[uuid] = new Sprite(state !== undefined ? state: "");
         //  Look up user information in the PN objects (if available)
         try {
-            if (uuid == pubnub.getUUID())
+            if (uuid == pubnub.getUUID() && typeof USE_OBJECTS_METADATA !== 'undefined' && USE_OBJECTS_METADATA == true)
             {
                 const result = await pubnub.objects.getUUIDMetadata({
                   uuid: uuid
