@@ -59,12 +59,15 @@ If you would like to build, run, and expand upon this application yourself, plea
 5. Draw by holding down left click while moving.
 6. Clear your screen by clicking on the top left waste basket icon.
 7. Clear everyone's screen by clicking on the bottom left waste basket icon.
-8. Open index.html in a new tab to have a new user join the drawing channel.
+8. Open `index.html` in a new tab to have a new user join the drawing channel.
 9. You can see their mouse movements and drawings in real-time. The occupancy count also reflects the users in the channel.
+
+### Homepage version of this app
+
+Note: You may have also seen a variant of this application on the PubNub homepage.  The source code that drives that app is the same that drives the demo described above, but there are some styling and logic changes applied, as configured by `homepage.html`, `constants_homepage.js` and `style_homepage.css`
 
 ## Links
 
-- Project homepage: https://pubnub.com
 - Demo Link: https://www.pubnub.com/demos/codoodler-collaboration-demo/
 - Tutorial Link: https://www.pubnub.com/tutorials/codoodler-collaboration/
 - How-To create collaborative applications:
@@ -82,4 +85,4 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-```
+
