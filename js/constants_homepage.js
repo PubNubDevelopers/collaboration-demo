@@ -29,3 +29,9 @@ function setRandomSpriteColor()
     //  Sprite colour is handled in CSS
     return;
 }
+
+function actionCompleted()
+{
+    //  Override for interactive demo - do nothing
+    return;
+}
