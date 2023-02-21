@@ -1,0 +1,144 @@
+:root {
+    --color-canvas-background: #FFFFFF;
+    --color-pen-1: #d6b0cd;
+    --color-pen-2: #92bdc0;
+    --color-pen-3: #065b6a;
+    --color-pen-4: #161c2d;
+}
+
+body {
+    background-color: var(--color-canvas-background);
+}
+
+#nameInput {
+    position:absolute;
+    z-index: 1;
+    flex-direction: row;
+    align-items: center;
+    padding: 8px 12px;
+    gap: 8px;
+    width: 200px;
+    height: 40px;
+    background: #FFFFFF;
+    border: 1px solid #D4D4D4;
+    box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.05);
+    border-radius: 6px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 24px;
+    color: #737373;
+}
+
+#nameInput:focus {
+    outline: none !important;
+    border: 2px solid #57969C
+}
+#nameInput::placeholder {
+    color: #737373;
+}
+
+#clearCanvas {
+    display:none;
+}
+
+#colorSwatch {
+    height:100%;
+    left: 36px;
+    position: fixed;
+    top: 0;
+    align-items: center;
+    display:flex;
+    flex-direction: column;
+    row-gap: 48px; 
+    pointer-events:none;
+    cursor: none;
+}
+
+input[type=radio]:checked + label::after {
+	content: '';
+	position: absolute;
+	left: -16px;
+    top: -16px;
+    border-left: 4px solid var(--color-pen-3);
+    height: 80px;
+}
+
+label[for=color01] {background: var(--color-pen-1);margin-top:auto;}
+label[for=color02] {background: var(--color-pen-2);}
+label[for=color03] {background: var(--color-pen-3);}
+label[for=color04] {background: var(--color-pen-4);margin-bottom:auto;}
+
+.bubblePresence {
+    display: inline-block;
+    margin-right: 5px;
+}
+
+.bubble {
+	position: absolute;	
+	right: 0px;
+  	min-width: 73px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 16px;
+    padding: 6px 10px 6px 8px;
+    gap: 6px;
+  	display: inline-block;
+  	border-radius: 10px;
+  	color: #065B6A;
+  	text-align: center;
+      background: #D1E4E5;
+      z-index:1;
+      caret-color:transparent;
+      pointer-events:none;
+}
+
+.bubble #occupancy {
+    background: #D1E4E5;
+    z-index:1;
+    caret-color:transparent;
+    pointer-events:none;
+}
+
+#sprite-container {
+    left: 20px;
+    right:20px;
+}
+
+.sprite {
+    min-width: 10px;
+    min-height: 10px;
+    position: absolute;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 16px;
+    text-align: center;
+    color: #065B6A;
+    padding: 8px 14px;
+    background: #D1E4E5;
+    border-radius: 4px;
+}
+
+.remoteSprite {
+    color: #262626;
+    background: #F5F5F5;
+}
+
+@media screen and (max-width: 600px) {
+    .sprite {
+        visibility:hidden;
+    }
+    #colorSwatch {
+        bottom: 15px;
+    }
+    #clearAllCanvas {
+        bottom: 75px;
+    }
+    #name {
+        display:none;
+    }
+}
