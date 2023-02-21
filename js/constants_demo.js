@@ -10,11 +10,11 @@ const PENCIL_Y_OFFSET = 80;
 const PENCIL_SPRITE_X_ADJUST = 0;
 const PENCIL_SPRITE_Y_ADJUST = 0;
 
-const PUBLIC_KEY = "pub-c-b8772a67-0f83-478d-a25a-3fffef982565";
+const PUBLISH_KEY = "pub-c-b8772a67-0f83-478d-a25a-3fffef982565";
 const SUBSCRIBE_KEY = "sub-c-cb5cda16-3e13-42d1-af5d-9ff3ab0f352f";
 // PubNub Connection Object.
 var pubnub = new PubNub({
-    publishKey: PUBLIC_KEY,
+    publishKey: PUBLISH_KEY,
     subscribeKey: SUBSCRIBE_KEY,
     uuid:("" + self.crypto.getRandomValues(new Uint32Array(1))),
     presenceTimeout:20

@@ -54,7 +54,7 @@ If you would like to build, run, and expand upon this application yourself, plea
 	git clone https://github.com/PubNubDevelopers/collaboration-demo.git
 	```
 2. Navigate to the folder, and open the js/app.js file.
-3. Replace your publish and subscribe keys with the PUBLIC_KEY and SUBSCRIBE_KEY constants at the top of the file.
+3. Replace your publish and subscribe keys with the PUBLISH_KEY and SUBSCRIBE_KEY constants at the top of the file.
 4. Open the index.html file in a browser. Enter in your name, move the mouse to see your name tracked with you.
 5. Draw by holding down left click while moving.
 6. Clear your screen by clicking on the top left waste basket icon.
