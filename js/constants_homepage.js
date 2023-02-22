@@ -11,8 +11,8 @@ const PENCIL_SPRITE_Y_ADJUST = 80
 const ERASE_WIDTH = DRAW_WIDTH + 2
 const CLEAR_LINE_OFFSET_DURATION = 1000
 
-const PUBLISH_KEY = 'pub-c-f9ba742d-2064-4067-b342-11b7ad51b1f0'
-const SUBSCRIBE_KEY = 'sub-c-5d65d651-2b6e-448b-a86e-278d608c0563'
+const PUBLISH_KEY = 'pub-c-dab42aa6-7dfe-431f-a1c2-f286ff85b7d9'
+const SUBSCRIBE_KEY = 'sub-c-a279d57d-7905-42cd-9a43-97ce0433d98f'
 
 // PubNub Connection Object.
 var pubnub = new PubNub({
