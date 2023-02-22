@@ -11,7 +11,7 @@
     <link href='https://fonts.googleapis.com/css?family=Poppins' rel='stylesheet'>
     <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet" />
 </head>
-<body onload="">
+<body onload="simulatedUsers()">
 	<div id="name">
 		<input type="text" placeholder="Enter name" id="nameInput" maxlength="20" autocomplete="off" />
    </div>
@@ -39,12 +39,12 @@
 		</section>
 	</section>
 </div>
-<div id="clearCanvas">
+<div id="clearAllCanvas">
        <button id="clearAllCanvasButton" class="clearCanvasButton" style="bottom:30px">&#128465</button>
        <label for="clearAllCanvasButton" style="font-size:15px;z-index:1; width:fit-content;">Clear All</label>
    </div>
-<!-- Interactive Demo Framework -->
-<script src="https://cdn.pubnub.com/sdk/javascript/pubnub.7.2.2.min.js"></script>
+
+   <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.7.2.2.min.js"></script>
 <script src="js/constants_homepage.js"></script>
 <script src="js/app.js"></script>
 <script src="simulation/drawings.js" defer></script>

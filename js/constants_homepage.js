@@ -24,14 +24,20 @@ var pubnub = new PubNub({
 
 //  Simulate users on the homepage to show how to use the demo & make it feel more interactive
 async function simulatedUsers () {
+  await sleep(1000) //  Initial delay on load
   while (true) {
     //  Random wait in between animations
-    var randomWait = getRandomInt(15000, 25000)
+    try {
+      startWorkerSimulator(
+        messages[getRandomInt(0, messages.length - 1)],
+        names[getRandomInt(0, names.length - 1)]
+      )
+    } catch (ex) {
+      //  Most likely, the deferred script has not loaded
+      console.log('Could not load simulated users, will retry...')
+    }
+    var randomWait = getRandomInt(10000, 20000) //  Delay inbetween each drawing (including the time to draw the current drawing)
     await sleep(randomWait)
-    startWorkerSimulator(
-      messages[getRandomInt(0, messages.length - 1)],
-      names[getRandomInt(0, names.length - 1)]
-    )
   }
 }
 

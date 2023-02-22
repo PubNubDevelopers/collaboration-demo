@@ -43,6 +43,10 @@ body {
     display:none;
 }
 
+#clearAllCanvas {
+    display:none;
+}
+
 #colorSwatch {
     height:100%;
     left: 36px;
@@ -128,7 +132,7 @@ label[for=color04] {background: var(--color-pen-4);margin-bottom:auto;}
     background: #F5F5F5;
 }
 
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 576px) {
     .sprite {
         visibility:hidden;
     }
