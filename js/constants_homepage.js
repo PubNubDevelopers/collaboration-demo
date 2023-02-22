@@ -10,6 +10,7 @@ const PENCIL_SPRITE_X_ADJUST = 2
 const PENCIL_SPRITE_Y_ADJUST = 80
 const ERASE_WIDTH = DRAW_WIDTH + 2
 const CLEAR_LINE_OFFSET_DURATION = 1000
+var visible = document.visibilityState == "visible"
 
 const PUBLISH_KEY = 'pub-c-dab42aa6-7dfe-431f-a1c2-f286ff85b7d9'
 const SUBSCRIBE_KEY = 'sub-c-a279d57d-7905-42cd-9a43-97ce0433d98f'
@@ -22,16 +23,23 @@ var pubnub = new PubNub({
   presenceTimeout: 20
 })
 
+document.addEventListener("visibilitychange", onVisibilityChange);
+
+function onVisibilityChange(evt)
+{
+  visible = document.visibilityState == "visible";
+}
+
 //  Simulate users on the homepage to show how to use the demo & make it feel more interactive
 async function simulatedUsers () {
   await sleep(1000) //  Initial delay on load
   while (true) {
     //  Random wait in between animations
     try {
-      startWorkerSimulator(
-        messages[getRandomInt(0, messages.length - 1)],
-        names[getRandomInt(0, names.length - 1)]
-      )
+        startWorkerSimulator(
+          messages[getRandomInt(0, messages.length - 1)],
+          names[getRandomInt(0, names.length - 1)]
+        )
     } catch (ex) {
       //  Most likely, the deferred script has not loaded
       console.log('Could not load simulated users, will retry...')
@@ -46,13 +54,17 @@ async function simulatedUsers () {
 async function startWorkerSimulator (msgs, name) {
   var packet = []
   for (var i = 0; i < msgs.length; i++) {
+    if (!visible) {
+      removeUser('Helper')
+      return;
+    }
     packet.push(msgs[i].data[0])
     updateUser('Helper', {
       x: msgs[i].data[0].newCoordinates.x,
       y: msgs[i].data[0].newCoordinates.y,
       name: name
     })
-    drawFromStream({ data: packet })
+      drawFromStream({ data: packet })
     await sleep(30)
     packet = []
   }
