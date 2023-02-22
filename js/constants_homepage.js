@@ -10,7 +10,8 @@ const PENCIL_SPRITE_X_ADJUST = 2
 const PENCIL_SPRITE_Y_ADJUST = 80
 const ERASE_WIDTH = DRAW_WIDTH + 2
 const CLEAR_LINE_OFFSET_DURATION = 1000
-var visible = document.visibilityState == "visible"
+var visible = document.visibilityState == 'visible'
+var timerHandle = null
 
 const PUBLISH_KEY = 'pub-c-dab42aa6-7dfe-431f-a1c2-f286ff85b7d9'
 const SUBSCRIBE_KEY = 'sub-c-a279d57d-7905-42cd-9a43-97ce0433d98f'
@@ -23,30 +24,44 @@ var pubnub = new PubNub({
   presenceTimeout: 20
 })
 
-document.addEventListener("visibilitychange", onVisibilityChange);
+document.addEventListener('visibilitychange', onVisibilityChange)
 
-function onVisibilityChange(evt)
-{
-  visible = document.visibilityState == "visible";
+function onVisibilityChange (evt) {
+  visible = document.visibilityState == 'visible'
+  if (visible) {
+    if (timerHandle === null) {
+      //  Window is visible Start the simulated users
+      timerHandle = setTimeout(simulateUser, 1000)
+    }
+  } else {
+    if (timerHandle != null) {
+      clearTimeout(timerHandle)
+      timerHandle = null
+    }
+  }
+}
+
+function simulatedUsers () {
+  if (timerHandle === null) {
+    //  Window is visible Start the simulated users
+    timerHandle = setTimeout(simulateUser, 1000)
+  }
 }
 
 //  Simulate users on the homepage to show how to use the demo & make it feel more interactive
-async function simulatedUsers () {
-  await sleep(1000) //  Initial delay on load
-  while (true) {
-    //  Random wait in between animations
-    try {
-        startWorkerSimulator(
-          messages[getRandomInt(0, messages.length - 1)],
-          names[getRandomInt(0, names.length - 1)]
-        )
-    } catch (ex) {
-      //  Most likely, the deferred script has not loaded
-      console.log('Could not load simulated users, will retry...')
-    }
-    var randomWait = getRandomInt(10000, 20000) //  Delay inbetween each drawing (including the time to draw the current drawing)
-    await sleep(randomWait)
+async function simulateUser () {
+  //  Random wait in between animations
+  try {
+    startWorkerSimulator(
+      messages[getRandomInt(0, messages.length - 1)],
+      names[getRandomInt(0, names.length - 1)]
+    )
+  } catch (ex) {
+    //  Most likely, the deferred script has not loaded
+    console.log('Could not load simulated users, will retry...')
   }
+  var randomWait = getRandomInt(10000, 20000) //  Delay inbetween each drawing (including the time to draw the current drawing)
+  timerHandle = setTimeout(simulateUser, randomWait)
 }
 
 //  Invoke the UI directly to draw the animation
@@ -56,7 +71,7 @@ async function startWorkerSimulator (msgs, name) {
   for (var i = 0; i < msgs.length; i++) {
     if (!visible) {
       removeUser('Helper')
-      return;
+      return
     }
     packet.push(msgs[i].data[0])
     updateUser('Helper', {
@@ -64,7 +79,7 @@ async function startWorkerSimulator (msgs, name) {
       y: msgs[i].data[0].newCoordinates.y,
       name: name
     })
-      drawFromStream({ data: packet })
+    drawFromStream({ data: packet })
     await sleep(30)
     packet = []
   }
