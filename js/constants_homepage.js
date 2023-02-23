@@ -31,7 +31,7 @@ function onVisibilityChange (evt) {
   if (visible) {
     if (timerHandle === null) {
       //  Window is visible Start the simulated users
-      timerHandle = setTimeout(simulateUser, 1000)
+      timerHandle = setTimeout(simulateUser, 1100)
     }
   } else {
     if (timerHandle != null) {
@@ -41,46 +41,33 @@ function onVisibilityChange (evt) {
   }
 }
 
-document.addEventListener('readystatechange', event => {
-  if (event.target.readyState === 'interactive') {
-    console.log('dom content loaded')
-    console.log('canvas width3: ' + canvas.width)
-    console.log('canvas height3: ' + canvas.height)
-  }
-  if (event.target.readyState === 'complete') {
-    console.log('canvas width4: ' + canvas.width)
-    console.log('canvas height4: ' + canvas.height)
-  }
-})
-
 function homepageLoad () {
   //  The homepage sits within several styles which is causing an issue with the default drawing logic
-  //  for canvas.  Reset the width and height after the page loads
-  var canvas = document.getElementById('drawCanvas')
-  var ctx = canvas.getContext('2d')
-  canvas.width = window.innerWidth
-  canvas.height = window.innerHeight
-  ctx.lineCap = ctx.lineJoin = 'round'
-  console.log('canvas width2: ' + canvas.width)
-  console.log('canvas height2: ' + canvas.height)
-
-  if (canvas.width == 0) {
-    //  parent has not yet loaded
-    setTimeout(() => {
-      var canvas = document.getElementById('drawCanvas')
-      var ctx = canvas.getContext('2d')
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
-      ctx.lineCap = ctx.lineJoin = 'round'
-      console.log('canvas width5: ' + canvas.width)
-      console.log('canvas height5: ' + canvas.height)
-    }, '1000')
-  }
+  //  for canvas.  Reset the width and height after the page loads.
+  resizeCanvas()
 
   //  Start the simulated (ghost) users
   if (timerHandle === null) {
     //  Window is visible Start the simulated users
-    timerHandle = setTimeout(simulateUser, 1000)
+    timerHandle = setTimeout(simulateUser, 1100)
+  }
+}
+
+function resizeCanvas () {
+  //  An additional issue arises because this app does not have the same origin as the parent,
+  //  making cross-communication difficult, so we do not know when the parent has
+  //  finished loading, hence the timeout.
+  var canvas = document.getElementById('drawCanvas')
+  if (canvas.width == 0) {
+    //  parent has not yet loaded
+    setTimeout(() => {
+      resizeCanvas()
+    }, '1000')
+  } else {
+    var ctx = canvas.getContext('2d')
+    canvas.width = window.innerWidth
+    canvas.height = window.innerHeight
+    ctx.lineCap = ctx.lineJoin = 'round'
   }
 }
 
