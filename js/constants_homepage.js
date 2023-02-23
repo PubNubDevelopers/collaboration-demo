@@ -58,6 +58,8 @@ function resizeCanvas () {
   //  making cross-communication difficult, so we do not know when the parent has
   //  finished loading, hence the timeout.
   var canvas = document.getElementById('drawCanvas')
+  console.log('width: ' + canvas.width)
+  console.log('height: ' + canvas.height)
   if (canvas.width == 0) {
     //  parent has not yet loaded
     setTimeout(() => {
