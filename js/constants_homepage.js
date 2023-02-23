@@ -42,6 +42,11 @@ function onVisibilityChange (evt) {
 }
 
 function simulatedUsers () {
+  var canvas = document.getElementById('drawCanvas')
+  canvas.width = window.innerWidth
+  canvas.height = window.innerHeight
+  console.log('canvas width: ' + canvas.width)
+  console.log('canvas height: ' + canvas.height)
   if (timerHandle === null) {
     //  Window is visible Start the simulated users
     timerHandle = setTimeout(simulateUser, 1000)
