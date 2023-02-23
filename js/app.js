@@ -72,6 +72,9 @@ document.getElementById('nameInput').addEventListener('keyup', function (e) {
   if (username.length <= 0) {
     username = placeholder
   }
+  if (typeof moderate === 'function') {
+    username = moderate(username)
+  }
   actionCompleted({
     action: 'Give yourself a name',
     debug: false
