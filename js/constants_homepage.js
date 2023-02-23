@@ -25,6 +25,7 @@ var pubnub = new PubNub({
 })
 
 document.addEventListener('visibilitychange', onVisibilityChange)
+window.addEventListener( 'resize', onWindowResize, false ); 
 
 function onVisibilityChange (evt) {
   visible = document.visibilityState == 'visible'
@@ -39,6 +40,13 @@ function onVisibilityChange (evt) {
       timerHandle = null
     }
   }
+}
+
+function onWindowResize() {
+  windowX = window.innerWidth;
+  windowY = window.innerHeight;
+  console.log('window resize width: ' + windowX)
+  console.log('window resize height: ' + windowY)
 }
 
 function homepageLoad () {
@@ -58,9 +66,9 @@ function resizeCanvas () {
   //  making cross-communication difficult, so we do not know when the parent has
   //  finished loading, hence the timeout.
   var canvas = document.getElementById('drawCanvas')
-  console.log('width: ' + canvas.width)
-  console.log('height: ' + canvas.height)
-  if (canvas.width == 0) {
+  console.log('width: ' + window.innerWidth)
+  console.log('height: ' + window.innerHeight)
+  if (window.innerWidth == 0) {
     //  parent has not yet loaded
     setTimeout(() => {
       resizeCanvas()
