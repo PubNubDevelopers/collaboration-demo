@@ -41,12 +41,18 @@ function onVisibilityChange (evt) {
   }
 }
 
-function simulatedUsers () {
+function homepageLoad () {
+  //  The homepage sits within several styles which is causing an issue with the default drawing logic
+  //  for canvas.  Reset the width and height after the page loads
   var canvas = document.getElementById('drawCanvas')
+  var ctx = canvas.getContext('2d')
   canvas.width = window.innerWidth
   canvas.height = window.innerHeight
-  console.log('canvas width: ' + canvas.width)
-  console.log('canvas height: ' + canvas.height)
+  ctx.lineCap = ctx.lineJoin = 'round'
+  console.log('canvas width2: ' + canvas.width)
+  console.log('canvas height2: ' + canvas.height)
+  
+  //  Start the simulated (ghost) users
   if (timerHandle === null) {
     //  Window is visible Start the simulated users
     timerHandle = setTimeout(simulateUser, 1000)
