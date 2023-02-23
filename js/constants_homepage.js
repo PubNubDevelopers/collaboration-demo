@@ -25,7 +25,7 @@ var pubnub = new PubNub({
 })
 
 document.addEventListener('visibilitychange', onVisibilityChange)
-window.addEventListener( 'resize', onWindowResize, false ); 
+window.addEventListener('resize', onWindowResize, false)
 
 function onVisibilityChange (evt) {
   visible = document.visibilityState == 'visible'
@@ -42,16 +42,11 @@ function onVisibilityChange (evt) {
   }
 }
 
-function onWindowResize() {
-  windowX = window.innerWidth;
-  windowY = window.innerHeight;
-  console.log('window resize width: ' + windowX)
-  console.log('window resize height: ' + windowY)
+function onWindowResize () {
+  resizeCanvas()
 }
 
 function homepageLoad () {
-  //  The homepage sits within several styles which is causing an issue with the default drawing logic
-  //  for canvas.  Reset the width and height after the page loads.
   resizeCanvas()
 
   //  Start the simulated (ghost) users
@@ -62,18 +57,10 @@ function homepageLoad () {
 }
 
 function resizeCanvas () {
-  //  An additional issue arises because this app does not have the same origin as the parent,
-  //  making cross-communication difficult, so we do not know when the parent has
-  //  finished loading, hence the timeout.
+  //  The homepage sits within several styles which is causing an issue with the default drawing logic
+  //  for canvas.  Reset the width and height after the page loads or on resize.
   var canvas = document.getElementById('drawCanvas')
-  console.log('width: ' + window.innerWidth)
-  console.log('height: ' + window.innerHeight)
-  if (window.innerWidth == 0) {
-    //  parent has not yet loaded
-    setTimeout(() => {
-      resizeCanvas()
-    }, '1000')
-  } else {
+  if (window.innerWidth != 0) {
     var ctx = canvas.getContext('2d')
     canvas.width = window.innerWidth
     canvas.height = window.innerHeight
