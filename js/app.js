@@ -318,7 +318,14 @@ function Sprite (state) {
   this.x = 100
   this.y = 100
   this.div = document.createElement('div')
-  this.div.innerHTML = state.name
+  if (state == '')
+  {
+    //  Strange, occasional 'undefined' user
+    this.div.style.display = 'none'
+  }
+  else {
+    this.div.innerHTML = state.name
+  }
   this.div.readOnly = true
   this.div.style.pointerEvents = 'none' //Make the textbox non interactive with the cursor in order to be able to change color.
   this.div.style.left = this.x + 'px'
@@ -360,6 +367,7 @@ function Sprite (state) {
     //Called whenever user moves mouse.
     if (!state) return
     if (state.txt !== undefined) {
+      this.div.style.display = 'block';
       //Replace just the text of the div (until reach the img tag)
       var replace = this.div.innerHTML.substring(
         this.div.innerHTML.indexOf('<img')

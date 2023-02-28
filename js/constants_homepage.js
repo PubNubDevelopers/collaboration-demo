@@ -20,8 +20,7 @@ const SUBSCRIBE_KEY = 'sub-c-a279d57d-7905-42cd-9a43-97ce0433d98f'
 var pubnub = new PubNub({
   publishKey: PUBLISH_KEY,
   subscribeKey: SUBSCRIBE_KEY,
-  uuid: '' + self.crypto.getRandomValues(new Uint32Array(1)),
-  presenceTimeout: 20
+  uuid: '' + self.crypto.getRandomValues(new Uint32Array(1))
 })
 
 document.addEventListener('visibilitychange', onVisibilityChange)
