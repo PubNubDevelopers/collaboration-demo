@@ -15,16 +15,18 @@ var timerHandle = null
 
 const PUBLISH_KEY = 'pub-c-dab42aa6-7dfe-431f-a1c2-f286ff85b7d9'
 const SUBSCRIBE_KEY = 'sub-c-a279d57d-7905-42cd-9a43-97ce0433d98f'
+const UUID = '' + self.crypto.getRandomValues(new Uint32Array(1))
+var token = null;
 
 // PubNub Connection Object.
 var pubnub = new PubNub({
   publishKey: PUBLISH_KEY,
   subscribeKey: SUBSCRIBE_KEY,
-  uuid: '' + self.crypto.getRandomValues(new Uint32Array(1))
-})
+  uuid: UUID
+});
 
-document.addEventListener('visibilitychange', onVisibilityChange)
-window.addEventListener('resize', onWindowResize, false)
+document.addEventListener('visibilitychange', onVisibilityChange);
+window.addEventListener('resize', onWindowResize, false);
 
 function onVisibilityChange (evt) {
   visible = document.visibilityState == 'visible'
@@ -45,7 +47,13 @@ function onWindowResize () {
   resizeCanvas()
 }
 
-function homepageLoad () {
+async function homepageLoad () {
+  token = await login(UUID);
+
+  if(token != null){
+    pubnub.setToken(token);
+  }
+
   resizeCanvas()
 
   //  Start the simulated (ghost) users

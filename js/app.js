@@ -297,6 +297,7 @@ function endDraw (e) {
 
 //Unsubscribes user from channel after being idle for more than 30 seconds and sends to timeout page.
 function idleUnsubscribe () {
+  logout(token);
   //Unsubscribe user to be removed from other screens.
   pubnub.unsubscribe({
     channels: [CHANNEL]
