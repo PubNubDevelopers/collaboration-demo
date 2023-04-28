@@ -12,13 +12,28 @@ const PENCIL_SPRITE_Y_ADJUST = 0
 
 const PUBLISH_KEY = 'pub-c-b8772a67-0f83-478d-a25a-3fffef982565'
 const SUBSCRIBE_KEY = 'sub-c-cb5cda16-3e13-42d1-af5d-9ff3ab0f352f'
+const UUID = '' + self.crypto.getRandomValues(new Uint32Array(1));
+var token = null;
 // PubNub Connection Object.
 var pubnub = new PubNub({
   publishKey: PUBLISH_KEY,
   subscribeKey: SUBSCRIBE_KEY,
-  uuid: '' + self.crypto.getRandomValues(new Uint32Array(1)),
+  uuid: UUID,
   presenceTimeout: 20
-})
+});
+
+async function loadCollaboration(){
+  token = await login(UUID);
+
+  if(token != null){
+    try{
+      pubnub.setToken(token);
+    }
+    catch(e){
+      console.log(e);
+    }
+  }
+}
 
 function setRandomSpriteColor (ele) {
   var rgb = {
