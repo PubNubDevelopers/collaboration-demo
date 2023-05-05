@@ -12,11 +12,7 @@ async function login(UUID){
 
     const body = (await response.json()).body;
 
-    console.log(body);
-
     const token = body.token;
-
-    console.log(token);
 
     return token;
   }

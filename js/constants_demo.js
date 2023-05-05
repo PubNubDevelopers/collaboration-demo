@@ -18,7 +18,6 @@ var token = null;
 var pubnub;
 
 async function loadCollaboration(){
-  console.log("LOADING>>>");
   token = await login(UUID);
   // console.log(pubnub.parseToken(token));
   pubnub = new PubNub({
@@ -29,7 +28,6 @@ async function loadCollaboration(){
   });
   if(token != null){
     try{
-      console.log("Setting token")
       pubnub.setToken(token);
     }
     catch(e){
