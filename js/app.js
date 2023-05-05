@@ -8,9 +8,8 @@ var idleTime = 0 //Remove and unsubscribe users after 30 seconds of sitting idle
 var onlyLettersSpaces = /[a-zA-Z\s]/ //Allow only letters and spaces to be entered for user name input.
 
 //The placeholer name is replaced for the user name upon first logging in and whenever they attempt to delete their name.
-var placeholder = 'ANON_' + pubnub.getUUID().substring(0, 4)
+var placeholder = 'ANON_' + '' + self.crypto.getRandomValues(new Uint32Array(1));
 var username = placeholder
-setText(username)
 
 // Canvas and Drawing Settings
 var canvas = document.getElementById('drawCanvas')
@@ -96,68 +95,6 @@ canvas.addEventListener(downEvent, startDraw, false)
 canvas.addEventListener(moveEvent, draw, false)
 canvas.addEventListener(upEvent, endDraw, false)
 
-// Events and Listeners
-pubnub.addListener({
-  message: function (m) {
-    if (m.message && m.message.clear && m.message.clear == true) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-    } else {
-      // Update canvas when other users draw.
-      if (m.publisher != pubnub.getUUID()) {
-        drawFromStream(m.message)
-      } else if (
-        typeof ALWAYS_DRAW_RECEIVED_POINTS !== 'undefined' &&
-        ALWAYS_DRAW_RECEIVED_POINTS == true
-      ) {
-        drawFromStream(m.message)
-      }
-    }
-  },
-  presence: function (m) {
-    // Update occupancy
-    var occupancy = m.occupancy
-
-    if (occupancy > 1 && document.getElementById('unit')) {
-      document.getElementById('unit').textContent = 'doodlers'
-      //  DEMO: used by the interactive demo
-      actionCompleted({
-        action: 'Draw with another user (You might need to open a new tab)',
-        debug: false
-      })
-    }
-    if (occupancy <= 1 && document.getElementById('unit')) {
-      document.getElementById('unit').textContent = 'doodler'
-    } else if (occupancy <= 1 && !document.getElementById('unit')) {
-      occupancy += ' active user'
-    } else if (occupancy > 1 && !document.getElementById('unit')) {
-      occupancy += ' active users'
-    }
-
-    document.getElementById('occupancy').textContent = occupancy
-
-    //Handle other user mice actions based on presence event.
-    if (m.uuid === pubnub.getUUID()) return //skip self
-    switch (m.action) {
-      case 'join':
-      case 'state-change':
-        updateUser(m.uuid, m.state)
-        break
-      case 'leave':
-      case 'timeout':
-        removeUser(m.uuid, m.state)
-        break
-      default:
-        break
-    }
-  }
-})
-
-//Subscribing to channels allows user to receive drawing strokes from other users.
-pubnub.subscribe({
-  channels: [CHANNEL],
-  withPresence: true
-})
-
 //Publish data to PubNub network for subscribers (Data contains color, previous and new coordinates).
 async function publish (data) {
   try {
@@ -172,15 +109,81 @@ async function publish (data) {
   }
 }
 
-//Used for tracking location of mouse and updating position for other users connected to app.
-window.onmousemove = function (event) {
-  var rect = event.target.getBoundingClientRect()
-  var xy = {
-    x: rect.left + event.offsetX,
-    y: rect.top + event.offsetY,
-    name: username
+function initializePubNubListener(){
+  // Events and Listeners
+  pubnub.addListener({
+    message: function (m) {
+      if (m.message && m.message.clear && m.message.clear == true) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+      } else {
+        // Update canvas when other users draw.
+        if (m.publisher != pubnub.getUUID()) {
+          drawFromStream(m.message)
+        } else if (
+          typeof ALWAYS_DRAW_RECEIVED_POINTS !== 'undefined' &&
+          ALWAYS_DRAW_RECEIVED_POINTS == true
+        ) {
+          drawFromStream(m.message)
+        }
+      }
+    },
+    presence: function (m) {
+      // Update occupancy
+      var occupancy = m.occupancy
+
+      if (occupancy > 1 && document.getElementById('unit')) {
+        document.getElementById('unit').textContent = 'doodlers'
+        //  DEMO: used by the interactive demo
+        actionCompleted({
+          action: 'Draw with another user (You might need to open a new tab)',
+          debug: false
+        })
+      }
+      if (occupancy <= 1 && document.getElementById('unit')) {
+        document.getElementById('unit').textContent = 'doodler'
+      } else if (occupancy <= 1 && !document.getElementById('unit')) {
+        occupancy += ' active user'
+      } else if (occupancy > 1 && !document.getElementById('unit')) {
+        occupancy += ' active users'
+      }
+
+      document.getElementById('occupancy').textContent = occupancy
+
+      //Handle other user mice actions based on presence event.
+      if (m.uuid === pubnub.getUUID()) return //skip self
+      switch (m.action) {
+        case 'join':
+        case 'state-change':
+          updateUser(m.uuid, m.state)
+          break
+        case 'leave':
+        case 'timeout':
+          removeUser(m.uuid, m.state)
+          break
+        default:
+          break
+      }
+    }
+  })
+
+  //Subscribing to channels allows user to receive drawing strokes from other users.
+  pubnub.subscribe({
+    channels: [CHANNEL],
+    withPresence: true
+  })
+}
+
+function initializeWindowListener(){
+  //Used for tracking location of mouse and updating position for other users connected to app.
+  window.onmousemove = function (event) {
+    var rect = event.target.getBoundingClientRect()
+    var xy = {
+      x: rect.left + event.offsetX,
+      y: rect.top + event.offsetY,
+      name: username
+    }
+    setPos(xy)
   }
-  setPos(xy)
 }
 
 //Draw on canvas

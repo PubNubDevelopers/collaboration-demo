@@ -15,24 +15,31 @@ const SUBSCRIBE_KEY = 'sub-c-cb5cda16-3e13-42d1-af5d-9ff3ab0f352f'
 const UUID = '' + self.crypto.getRandomValues(new Uint32Array(1));
 var token = null;
 // PubNub Connection Object.
-var pubnub = new PubNub({
-  publishKey: PUBLISH_KEY,
-  subscribeKey: SUBSCRIBE_KEY,
-  uuid: UUID,
-  presenceTimeout: 20
-});
+var pubnub;
 
 async function loadCollaboration(){
+  console.log("LOADING>>>");
   token = await login(UUID);
-
+  // console.log(pubnub.parseToken(token));
+  pubnub = new PubNub({
+    publishKey: PUBLISH_KEY,
+    subscribeKey: SUBSCRIBE_KEY,
+    uuid: UUID,
+    presenceTimeout: 20
+  });
   if(token != null){
     try{
+      console.log("Setting token")
       pubnub.setToken(token);
     }
     catch(e){
       console.log(e);
     }
   }
+
+  setText(username);
+  initializePubNubListener();
+  initializeWindowListener();
 }
 
 function setRandomSpriteColor (ele) {
