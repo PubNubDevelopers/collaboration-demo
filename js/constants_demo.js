@@ -26,8 +26,14 @@ async function loadCollaboration(){
   token = await login(UUID);
 
   if(token != null){
-    try{
+    try {
+      //  Although the Access Manager token will timeout after a pre-set period of time
+      //  this time is set to greater than the IDLE_TIMEOUT (The latter is 30 seconds,
+      //  the former is a few hours)
       pubnub.setToken(token);
+      let scriptEle = document.createElement("script");
+      scriptEle.setAttribute("src", "https://pubnubdevelopers.github.io/collaboration-demo/js/app.js");
+      document.body.appendChild(scriptEle);
     }
     catch(e){
       console.log(e);
