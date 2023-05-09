@@ -23,7 +23,7 @@ var pubnub = new PubNub({
 });
 
 async function loadCollaboration(){
-  token = await login(UUID);
+  token = await loginDemo(UUID);
 
   if(token != null){
     try {

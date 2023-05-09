@@ -23,6 +23,41 @@ var pubnub = new PubNub({
   uuid: '' + self.crypto.getRandomValues(new Uint32Array(1))
 })
 
+async function loadCollaborationHomepage(){
+  loginHomepage(pubnub.getUUID()).then((token) => {
+    if(token != null){
+      try {
+        const ttl = pubnub.parseToken(token).ttl  //  minutes
+        pubnub.setToken(token);
+        setTimeout(refreshToken, (((ttl * 60) - 45) * 1000))  //  Refresh the token 45s before it expires
+        //  Ideally this code needs refactoring but since app.js is largely legacy, this approach
+        //  is the least risky
+        let scriptEle = document.createElement("script");
+        scriptEle.setAttribute("src", "https://pubnubdevelopers.github.io/collaboration-demo/js/app.js");
+        document.body.appendChild(scriptEle);
+      }
+      catch(e){
+        console.log(e);
+      }
+    }  
+  });
+}
+
+async function refreshToken()
+{
+  var token = await loginHomepage(pubnub.getUUID());
+  if(token != null){
+    try {
+      const ttl = pubnub.parseToken(token).ttl  //  minutes
+      pubnub.setToken(token);
+      setTimeout(refreshToken, (((ttl * 60) - 45) * 1000))  //  Refresh the token 45s before it expires
+    }
+    catch(e){
+      console.log(e);
+    }
+  }
+}
+
 document.addEventListener('visibilitychange', onVisibilityChange)
 window.addEventListener('resize', onWindowResize, false)
 
@@ -86,6 +121,9 @@ async function simulateUser () {
 //  Invoke the UI directly to draw the animation
 //  Another option would be to host a backend which is pumping updates --> longer term goal
 async function startWorkerSimulator (msgs, name) {
+  if (typeof updateUser !== 'function') {
+    return;
+  }
   var packet = []
   for (var i = 0; i < msgs.length; i++) {
     if (!visible) {
