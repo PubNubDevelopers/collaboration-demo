@@ -62,6 +62,7 @@ subscription.onSignal = event => {
 subscription.onPresence = event => {
   if (event.action !== 'state-change') setOccupancy(event.occupancy) // state-change events carry no occupancy.
   if (event.action === 'interval') { // On busy channels PubNub batches joins and leaves into interval events.
+    if (event.hereNowRefresh) loadUsers() // Without Presence Deltas the event has no lists, so ask again.
     ;[...(event.leave || []), ...(event.timeout || [])].forEach(removeUser)
     return
   }
@@ -102,6 +103,10 @@ async function loadUsers () {
     const result = await pubnub.hereNow({ channels: [CHANNEL], includeState: true })
     setOccupancy(result.totalOccupancy)
     const occupants = (result.channels[CHANNEL] && result.channels[CHANNEL].occupants) || []
+    const present = new Set(occupants.map(occupant => occupant.uuid))
+    Object.keys(users).forEach(userId => { // Remove cursors of users who left while you weren't listening.
+      if (userId !== pubnub.getUserId() && !present.has(userId)) removeUser(userId)
+    })
     occupants.forEach(occupant => {
       if (occupant.uuid === pubnub.getUserId()) return
       const state = occupant.state || {}
@@ -187,13 +192,13 @@ nameInput.addEventListener('select', function () {
 })
 
 // Track your cursor: move your own label and send the position to the others.
-window.addEventListener('mousemove', event => {
+window.addEventListener('pointermove', event => {
   getUser(pubnub.getUserId()).moveTo(event.clientX, event.clientY)
   sendPosition(event.clientX, event.clientY)
 })
 
 // Leave the channel after 30 seconds without input. Any input resets the timer.
-;['mousemove', 'touchstart', 'keydown'].forEach(type => document.addEventListener(type, resetIdleTime))
+; ['pointermove', 'pointerdown', 'keydown'].forEach(type => document.addEventListener(type, resetIdleTime))
 resetIdleTime()
 
 function resetIdleTime () {
@@ -206,11 +211,12 @@ function idleUnsubscribe () {
   window.location.replace('./timeout.html')
 }
 
-// Drawing
-const isTouchSupported = 'ontouchstart' in window
-canvas.addEventListener(isTouchSupported ? 'touchstart' : 'mousedown', startDraw, false)
-canvas.addEventListener(isTouchSupported ? 'touchmove' : 'mousemove', draw, false)
-canvas.addEventListener(isTouchSupported ? 'touchend' : 'mouseup', endDraw, false)
+// Drawing: pointer events cover the mouse, pens and touch.
+let drawing = false
+canvas.addEventListener('pointerdown', startDraw)
+canvas.addEventListener('pointermove', draw)
+canvas.addEventListener('pointerup', endDraw)
+canvas.addEventListener('pointercancel', endDraw)
 
 function drawOnCanvas (color, startCoordinates, endCoordinates) {
   ctx.strokeStyle = color
@@ -235,21 +241,20 @@ function isPoint (point) {
 }
 
 function pointerPosition (e) {
-  const x = isTouchSupported ? e.targetTouches[0].pageX + 10 : e.offsetX
-  const y = isTouchSupported ? e.targetTouches[0].pageY : e.offsetY
-  return { x: x << 0, y: y << 0 } // Round, for touch screens.
+  return { x: e.offsetX << 0, y: e.offsetY << 0 } // Whole pixels.
 }
 
-// Mouse down: remember where the line starts.
+// Pointer down: remember where the line starts.
 function startDraw (e) {
   e.preventDefault()
+  canvas.setPointerCapture(e.pointerId) // Keep getting moves even if the pointer leaves the canvas.
+  drawing = true
   oldCoordinates = pointerPosition(e)
 }
 
-// Mouse move with the button down: draw, and publish every BATCH_SIZE segments.
+// Pointer move while drawing: draw, and publish every BATCH_SIZE segments.
 function draw (e) {
-  e.preventDefault() // Stop touch events from scrolling the page.
-  if (!((isTouchSupported && e.touches.length === 1) || e.buttons === 1)) return
+  if (!drawing) return
   const newCoordinates = pointerPosition(e)
   drawOnCanvas(color, oldCoordinates, newCoordinates)
   plots.push({ color, oldCoordinates, newCoordinates })
@@ -261,9 +266,10 @@ function draw (e) {
   oldCoordinates = newCoordinates
 }
 
-// Mouse up: publish what's left.
-function endDraw (e) {
-  e.preventDefault()
+// Pointer up: publish what's left.
+function endDraw () {
+  if (!drawing) return
+  drawing = false
   if (plots.length > 0) publish({ data: plots })
   plots = []
   oldCoordinates = {}

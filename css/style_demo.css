@@ -95,3 +95,6 @@ label[for=color06] {background: powderblue;}
     background-color: red;
     padding: 5px;
 }
+#drawCanvas {
+    touch-action: none; /* Touch draws instead of scrolling the page. */
+}
