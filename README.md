@@ -56,7 +56,10 @@ After 30 seconds without input you leave the canvas and see a timeout page.
 
 ### Interactive demo on pubnub.com
 
-`js/demo-tracking.js` and `features.json` are only for the interactive demo on pubnub.com, which embeds this app with `?identifier=<visitor ID>` and ticks off the features in `features.json` as the visitor tries them. Without that parameter the script does nothing. It isn't part of the tutorial; you can delete both files in your own copy.
+The interactive demo on pubnub.com embeds this app from GitHub Pages (`pubnubdevelopers.github.io/collaboration-demo/?identifier=<visitor ID>`). Three files exist only for it and aren't part of the tutorial; you can delete them in your own copy:
+
+- `js/demo-config.js` runs only on `pubnubdevelopers.github.io`. The hosted demo uses PubNub's demo keyset, which has Access Manager on, so this file swaps in the demo keys and gets a token from PubNub's demo token server before `js/config.js` creates the client. On your copy it does nothing.
+- `js/demo-tracking.js` and `features.json` tick off the features in `features.json` as the visitor tries them. Without `?identifier=` the script does nothing.
 
 ## Links
 
