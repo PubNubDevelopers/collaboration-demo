@@ -289,8 +289,10 @@ function removeUser (userId) {
   }
 }
 
-// A cursor: a pencil with a name label that glides to the last position it got.
+// A cursor: a pencil with a name label. Your own cursor sits under the pointer; the others glide to
+// the last position they got, so they move smoothly between signals.
 function Sprite (isSelf, name) {
+  this.isSelf = isSelf
   this.x = this.tx = 100
   this.y = this.ty = 100
   this.animating = false
@@ -325,31 +327,38 @@ Sprite.prototype.moveTo = function (x, y) {
   const bounds = spriteContainer.getBoundingClientRect()
   this.tx = Math.min(x, bounds.width + 40)
   this.ty = Math.min(y, bounds.height + 20)
-  if (this.div.style.display === 'none') { // First position: jump there.
+  if (this.isSelf || this.div.style.display === 'none') { // Your own cursor, or a first position: jump there.
     this.x = this.tx
     this.y = this.ty
     this.div.style.display = 'block'
+    this.render()
+    return
   }
   if (!this.animating) {
     this.animating = true
-    this.update()
+    requestAnimationFrame(() => this.update())
   }
 }
 
-// Move 4 px per frame towards the target, then stop.
+// Each frame, cover 35% of the remaining distance (at least 4 px), so a cursor keeps up with fast drawing.
 Sprite.prototype.update = function () {
-  const speed = 4
   const dx = this.tx - this.x
   const dy = this.ty - this.y
-  if (Math.sqrt(dx * dx + dy * dy) < speed) {
+  const distance = Math.sqrt(dx * dx + dy * dy)
+  const step = Math.max(4, distance * 0.35)
+  if (distance <= step) {
     this.x = this.tx
     this.y = this.ty
     this.animating = false
   } else {
-    this.x += Math.abs(dx) > speed ? Math.sign(dx) * speed : dx
-    this.y += Math.abs(dy) > speed ? Math.sign(dy) * speed : dy
+    this.x += dx * step / distance
+    this.y += dy * step / distance
     requestAnimationFrame(() => this.update())
   }
+  this.render()
+}
+
+Sprite.prototype.render = function () {
   this.div.style.left = this.x + 'px'
   this.div.style.top = this.y + 'px'
 }

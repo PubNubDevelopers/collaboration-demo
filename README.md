@@ -54,6 +54,10 @@ You can also create the keyset from your AI coding tool with the [PubNub MCP Ser
 
 After 30 seconds without input you leave the canvas and see a timeout page.
 
+### Interactive demo on pubnub.com
+
+`js/demo-tracking.js` and `features.json` are only for the interactive demo on pubnub.com, which embeds this app with `?identifier=<visitor ID>` and ticks off the features in `features.json` as the visitor tries them. Without that parameter the script does nothing. It isn't part of the tutorial; you can delete both files in your own copy.
+
 ## Links
 
 - Demo Link: https://www.pubnub.com/demos/codoodler-collaboration-demo/
