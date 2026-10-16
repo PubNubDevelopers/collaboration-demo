@@ -11,67 +11,60 @@ You can draw with others connected to the application and see these results on t
 
 ## Features
 
-* Users can draw and see each others' artwork update in real-time.
-* Mouse movements are also tracked in real-time, so users can see the mouse movements of all those connected.
-* Each user connected can type in a name, which appears under their stylus mouse. The names can be updated and will be updated in real-time.
-* Clear your screen, or clear everyone's screen, by pressing on the waste basket icons.
-* The number of users connected is tracked and updated in the top right-corner of the screen by making use of Presence detection.
+* Users draw and see each other's artwork in real time (PubNub messages).
+* Everyone's cursor moves in real time (PubNub signals).
+* Each user can type a name, which appears on their cursor for everyone (Presence state).
+* Clear your screen, or everyone's screen, with the waste basket icons.
+* The number of users on the canvas shows in the top-right corner (Presence).
+
+Tested with the PubNub JavaScript SDK 13.1.2 (October 2026).
 
 ## Demo
-Try the [application!](www.pubnub.com/demos/codoodler-collaboration-demo/)
+Try the [application](https://www.pubnub.com/demos/codoodler-collaboration-demo/).
 
 ## Installing / Getting started
-If you would like to build, run, and expand upon this application yourself, please follow the sections below. There is also a detailed tutorial on how this applciation was built located on PubNub's website.
+There is a step-by-step [tutorial](https://www.pubnub.com/tutorials/collaboration-codoodler/) on PubNub's website.
 
 ### Requirements
-- [Git](https://www.atlassian.com/git/tutorials/install-git)
-- Your favorite IDE or code editor, such as [Visual Studio Code](https://code.visualstudio.com/).
-- [PubNub Account](#pubnub-account) (*Free*)
+- A current browser: Chrome, Firefox, Safari or Edge
+- [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+- A code editor, such as [Visual Studio Code](https://code.visualstudio.com/)
+- A free [PubNub account](https://admin.pubnub.com/signup)
 
-<a href="https://dashboard.pubnub.com/signup">
-	<img alt="PubNub Signup" src="https://i.imgur.com/og5DDjf.png" width=260 height=97/>
-</a>
+### Get your PubNub keys
+1. Sign in to the [Admin Portal](https://admin.pubnub.com/).
+2. Go to **Apps & Keysets**, click **Create app** and give it a name.
+3. Open the app and click **Create keyset**. Enter a name, keep the environment on **Testing** and click **Next**.
+4. Presence is already on. Under **Presence**, choose **All channels**, then click **Create**. With the default, **Selected channels only**, the cursors, names and user count stay empty until you add a Presence rule for `collaboration-demo`.
+5. Copy the **Publish key** and the **Subscribe key**.
 
-### Get Your PubNub Keys
-1. Sign in to your [PubNub Dashboard](https://admin.pubnub.com/). You are now in the Admin Portal.
-2. Go to Apps using the left-hand side navigation.
-3. Click the Create New App button in the top-right of the Portal.
-4. Give your app a name.
-5. Click Create.
-6. Click your new app to open its settings.
-7. When you create a new app, the first set of keys are generated automatically. However, a single app can have as many keysets as you like. PubNub recommends that you create separate keysets for production and test environments.
-8. Click on the keyset.
-9. Enable two features for the keyset to be able to connect to the PubNub Network: Presence and Stream Controller.
-10. Enable Presence by clicking on the slider to turn it on. A pop-up will require that you enter in “ENABLE”. Enter in “ENABLE” in all caps and then press the “Enable” button. Enable the "Generate Leave on TCP FIN or RST checkbox", which generates leave events when clients close their connection (used to track occupancy and remove non-connected clients in app). You can leave the rest of the default settings.
-11. Enable Stream Controller by clicking on the slider to turn it on if it is already not enabled. You can leave the default settings.
-12. Click on save changes.
-13. Save the Publish and Subscribe Keys.
+You can also create the keyset from your AI coding tool with the [PubNub MCP Server](https://www.pubnub.com/docs/ai-development/set-up-mcp-server).
 
-### Building and Running
-1. Clone the GitHub repository.
+### Building and running
+1. Clone the repository:
 
 	```bash
 	git clone https://github.com/PubNubDevelopers/collaboration-demo.git
 	```
-2. Navigate to the folder, and open the js/app.js file.
-3. Replace your publish and subscribe keys with the PUBLISH_KEY and SUBSCRIBE_KEY constants at the top of the file.
-4. Open the index.html file in a browser. Enter in your name, move the mouse to see your name tracked with you.
-5. Draw by holding down left click while moving.
-6. Clear your screen by clicking on the top left waste basket icon.
-7. Clear everyone's screen by clicking on the bottom left waste basket icon.
-8. Open `index.html` in a new tab to have a new user join the drawing channel.
-9. You can see their mouse movements and drawings in real-time. The occupancy count also reflects the users in the channel.
+2. Open `js/config.js` and replace `YOUR_PUBLISH_KEY` and `YOUR_SUBSCRIBE_KEY` with your keys.
+3. Open `index.html` in a browser. Type your name and move the mouse: your name follows your cursor.
+4. Draw by holding down the left mouse button while you move.
+5. Open `index.html` in a second browser window to join as another user. You see each other's drawings, cursors and names, and the user count goes up.
+6. **Clear** (top left) clears your screen; **Clear All** (bottom left) clears everyone's.
 
-### Homepage version of this app
+After 30 seconds without input you leave the canvas and see a timeout page.
 
-Note: You may have also seen a variant of this application on the PubNub homepage.  The source code that drives that app is the same that drives the demo described above, but there are some styling and logic changes applied, as configured by `homepage.html`, `constants_homepage.js` and `style_homepage.css`
+### Interactive demo on pubnub.com
+
+The interactive demo on pubnub.com embeds this app from GitHub Pages (`pubnubdevelopers.github.io/collaboration-demo/?identifier=<visitor ID>`). Three files exist only for it and aren't part of the tutorial; you can delete them in your own copy:
+
+- `js/demo-config.js` runs only on `pubnubdevelopers.github.io`. The hosted demo uses PubNub's demo keyset, which has Access Manager on, so this file swaps in the demo keys and gets a token from PubNub's demo token server before `js/config.js` creates the client. On your copy it does nothing.
+- `js/demo-tracking.js` and `features.json` tick off the features in `features.json` as the visitor tries them. Without `?identifier=` the script does nothing.
 
 ## Links
 
 - Demo Link: https://www.pubnub.com/demos/codoodler-collaboration-demo/
-- Tutorial Link: https://www.pubnub.com/tutorials/collaboration/
-- How-To create collaborative applications:
-- Blog post on collaborative applications:
+- Tutorial Link: https://www.pubnub.com/tutorials/collaboration-codoodler/
 
 ## License
 Licensed under the Apache License, Version 2.0 (the "License");
